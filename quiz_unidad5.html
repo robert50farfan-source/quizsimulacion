@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz · Unidad 5 · Programación Dinámica y Heurísticas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <style>
+      :root {
+        --ink: #0d0b14;
+        --paper: #f4efe6;
+        --paper-2: #ebe3d4;
+        --acid: #d6ff3f;
+        --coral: #ff5d3b;
+        --violet: #5b2be8;
+        --teal: #0fb5a0;
+        --gold: #ffb02e;
+        --line: #0d0b14;
+        --shadow: 6px 6px 0 var(--ink);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        min-height: 100%;
+      }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Archivo", sans-serif;
+        background-image: radial-gradient(
+          var(--paper-2) 1.4px,
+          transparent 1.4px
+        );
+        background-size: 22px 22px;
+        padding: 0;
+      }
+      h1 {
+        font-family: "Fraunces", serif;
+        font-weight: 900;
+        line-height: 0.92;
+        font-size: clamp(36px, 6vw, 80px);
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-family: "Fraunces", serif;
+        font-weight: 900;
+        font-size: clamp(22px, 3vw, 36px);
+        letter-spacing: -0.015em;
+      }
+      .eyebrow {
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--violet);
+        margin-bottom: 14px;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 28px;
+        height: 3px;
+        background: var(--coral);
+      }
+
+      /* ── HERO ── */
+      #hero {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100vh;
+        padding: clamp(28px, 6vw, 80px);
+        position: relative;
+        overflow: hidden;
+      }
+      .bigmark {
+        position: absolute;
+        right: -2vw;
+        top: 4vh;
+        font-family: "Fraunces", serif;
+        font-weight: 900;
+        font-size: 46vh;
+        color: var(--paper-2);
+        z-index: 0;
+        line-height: 0.8;
+        user-select: none;
+      }
+      #hero .inner {
+        position: relative;
+        z-index: 1;
+        max-width: 820px;
+      }
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 26px;
+      }
+      .pill {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        border: 3px solid var(--line);
+        padding: 8px 14px;
+        border-radius: 99px;
+        background: var(--paper);
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .pill.a {
+        background: var(--acid);
+      }
+      .pill.c {
+        background: var(--coral);
+        color: var(--paper);
+      }
+      .pill.v {
+        background: var(--violet);
+        color: var(--paper);
+      }
+      .btn-main {
+        margin-top: 36px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 16px;
+        background: var(--ink);
+        color: var(--acid);
+        border: 3px solid var(--ink);
+        padding: 14px 28px;
+        border-radius: 99px;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: 0.15s;
+      }
+      .btn-main:hover {
+        background: var(--violet);
+        box-shadow: 8px 8px 0 var(--ink);
+      }
+
+      /* ── REGISTRO ── */
+      #registro {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100vh;
+        padding: clamp(28px, 6vw, 80px);
+        position: relative;
+        overflow: hidden;
+      }
+      #registro .inner {
+        position: relative;
+        z-index: 1;
+        max-width: 560px;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 22px;
+      }
+      .field-label {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--violet);
+      }
+      .field-input {
+        font-family: "Archivo", sans-serif;
+        font-size: clamp(15px, 1.5vw, 18px);
+        border: 3px solid var(--ink);
+        background: var(--paper);
+        padding: 14px 18px;
+        border-radius: 4px;
+        box-shadow: 4px 4px 0 var(--ink);
+        outline: none;
+        width: 100%;
+        transition: 0.15s;
+      }
+      .field-input:focus {
+        border-color: var(--violet);
+        box-shadow: 4px 4px 0 var(--violet);
+      }
+      .field-hint {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: #888;
+      }
+      .field-error {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--coral);
+        display: none;
+      }
+      .field-error.show {
+        display: block;
+      }
+
+      /* ── QUIZ SECTION ── */
+      #quiz-section {
+        display: none;
+        padding: clamp(24px, 5vw, 72px);
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .progress-bar-wrap {
+        background: var(--paper-2);
+        border: 3px solid var(--ink);
+        border-radius: 99px;
+        height: 16px;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        background: var(--coral);
+        border-radius: 99px;
+        transition: width 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+      }
+      .progress-label {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--violet);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .student-badge {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        background: var(--ink);
+        color: var(--acid);
+        padding: 5px 14px;
+        border-radius: 99px;
+        margin-bottom: 18px;
+        display: inline-block;
+      }
+
+      /* ── QUESTION CARD ── */
+      .q-card {
+        background: var(--paper);
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow);
+        border-radius: 4px;
+        padding: clamp(20px, 3vw, 40px);
+        animation: fadeUp 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .q-number {
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--coral);
+        margin-bottom: 12px;
+      }
+      .q-text {
+        font-family: "Fraunces", serif;
+        font-weight: 600;
+        font-size: clamp(18px, 2.2vw, 26px);
+        line-height: 1.3;
+        margin-bottom: 28px;
+      }
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .opt {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        border: 3px solid var(--ink);
+        background: var(--paper);
+        padding: 14px 18px;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 4px 4px 0 var(--ink);
+        transition:
+          transform 0.12s,
+          box-shadow 0.12s,
+          background 0.12s;
+        font-size: clamp(14px, 1.3vw, 17px);
+        line-height: 1.4;
+        text-align: left;
+        font-family: "Archivo", sans-serif;
+      }
+      .opt:hover:not(.locked) {
+        background: var(--acid);
+        transform: translateY(-2px);
+        box-shadow: 6px 6px 0 var(--ink);
+      }
+      .opt .letter {
+        flex: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: var(--acid);
+        display: grid;
+        place-items: center;
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .opt.correct {
+        background: var(--acid) !important;
+        border-color: var(--teal) !important;
+        box-shadow: 4px 4px 0 var(--teal) !important;
+      }
+      .opt.correct .letter {
+        background: var(--teal);
+        color: #fff;
+      }
+      .opt.wrong {
+        background: #ffd5cc !important;
+        border-color: var(--coral) !important;
+        box-shadow: 4px 4px 0 var(--coral) !important;
+      }
+      .opt.wrong .letter {
+        background: var(--coral);
+        color: #fff;
+      }
+      .opt.locked {
+        cursor: default;
+        transform: none !important;
+      }
+      .feedback {
+        margin-top: 22px;
+        padding: 16px 20px;
+        border: 3px solid var(--ink);
+        border-radius: 4px;
+        font-size: clamp(14px, 1.2vw, 16px);
+        line-height: 1.5;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.ok {
+        background: var(--acid);
+      }
+      .feedback.fail {
+        background: #ffd5cc;
+      }
+      .feedback strong {
+        font-weight: 900;
+      }
+      .q-nav {
+        margin-top: 28px;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .btn-next {
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 14px;
+        background: var(--ink);
+        color: var(--acid);
+        border: 3px solid var(--ink);
+        padding: 12px 26px;
+        border-radius: 99px;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: 0.15s;
+        display: none;
+      }
+      .btn-next:hover {
+        background: var(--violet);
+        box-shadow: 8px 8px 0 var(--ink);
+      }
+      .btn-next.show {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* ── RESULTS ── */
+      #results {
+        display: none;
+        padding: clamp(24px, 5vw, 72px);
+        max-width: 900px;
+        margin: 0 auto;
+        animation: fadeUp 0.5s ease;
+      }
+      .score-box {
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow);
+        padding: clamp(24px, 4vw, 52px);
+        border-radius: 4px;
+        text-align: center;
+        margin-bottom: 36px;
+      }
+      .score-box.perfect {
+        background: var(--acid);
+      }
+      .score-box.good {
+        background: var(--teal);
+        color: #fff;
+      }
+      .score-box.regular {
+        background: var(--gold);
+      }
+      .score-box.low {
+        background: #ffd5cc;
+      }
+      .big-score {
+        font-family: "Fraunces", serif;
+        font-weight: 900;
+        font-size: clamp(64px, 12vw, 140px);
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+      .score-label {
+        font-family: "Space Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-top: 10px;
+      }
+      .score-msg {
+        font-size: clamp(16px, 1.6vw, 20px);
+        margin-top: 18px;
+        line-height: 1.4;
+      }
+      .score-student {
+        font-family: "Space Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 14px;
+        opacity: 0.75;
+      }
+
+      /* ── SAVE STATUS ── */
+      .save-status {
+        display: none;
+        font-family: "Space Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 14px 20px;
+        border: 3px solid var(--ink);
+        border-radius: 4px;
+        margin-bottom: 28px;
+        text-align: center;
+      }
+      .save-status.saving {
+        display: block;
+        background: var(--gold);
+      }
+      .save-status.saved {
+        display: block;
+        background: var(--acid);
+      }
+      .save-status.error {
+        display: block;
+        background: #ffd5cc;
+      }
+
+      /* ── REVIEW ── */
+      .review-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .review-item {
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow);
+        border-radius: 4px;
+        padding: 20px 24px;
+      }
+      .review-item.correct-item {
+        border-color: var(--teal);
+        box-shadow: 4px 4px 0 var(--teal);
+      }
+      .review-item.wrong-item {
+        border-color: var(--coral);
+        box-shadow: 4px 4px 0 var(--coral);
+      }
+      .review-q {
+        font-family: "Fraunces", serif;
+        font-weight: 600;
+        font-size: clamp(15px, 1.5vw, 18px);
+        margin-bottom: 10px;
+      }
+      .review-meta {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .tag-ok {
+        background: var(--acid);
+        padding: 3px 10px;
+        border-radius: 99px;
+        border: 2px solid var(--teal);
+      }
+      .tag-bad {
+        background: #ffd5cc;
+        color: var(--coral);
+        padding: 3px 10px;
+        border-radius: 99px;
+        border: 2px solid var(--coral);
+      }
+      .tag-ans {
+        background: var(--paper-2);
+        padding: 3px 10px;
+        border-radius: 99px;
+        border: 2px solid var(--ink);
+      }
+      .btn-retry {
+        margin-top: 36px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 15px;
+        background: var(--ink);
+        color: var(--acid);
+        border: 3px solid var(--ink);
+        padding: 13px 26px;
+        border-radius: 99px;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: 0.15s;
+      }
+      .btn-retry:hover {
+        background: var(--violet);
+        box-shadow: 8px 8px 0 var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══ HERO ══ -->
+    <section id="hero">
+      <div class="bigmark">5</div>
+      <div class="inner">
+        <div class="eyebrow">Modelación y Simulación · Unidad 5</div>
+        <h1>Evaluación<br />Teórica</h1>
+        <div class="pill-row">
+          <span class="pill a">10 Preguntas</span>
+          <span class="pill v">Prog. Dinámica</span>
+          <span class="pill c">Heurísticas</span>
+          <span class="pill">Metaheurísticas</span>
+        </div>
+        <p
+          style="
+            margin-top: 22px;
+            font-size: clamp(15px, 1.4vw, 18px);
+            line-height: 1.6;
+            max-width: 55ch;
+          "
+        >
+          Selección múltiple. Recibirás retroalimentación inmediata en cada
+          pregunta y tu puntaje final con revisión completa al terminar. El
+          resultado se guarda automáticamente.
+        </p>
+        <button class="btn-main" onclick="goToRegistro()">
+          Comenzar evaluación ▶
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ REGISTRO ══ -->
+    <section id="registro">
+      <div class="bigmark">5</div>
+      <div class="inner">
+        <div class="eyebrow">Paso 1 de 2 · Identificación</div>
+        <h1 style="margin-bottom: 32px">¿Quién<br />eres?</h1>
+
+        <div class="field-group">
+          <label class="field-label" for="inp-nombre">Nombre completo *</label>
+          <input
+            class="field-input"
+            id="inp-nombre"
+            type="text"
+            placeholder="Ej. María González"
+            autocomplete="name"
+            maxlength="80"
+          />
+          <span class="field-error" id="err-nombre"
+            >Por favor ingresa tu nombre.</span
+          >
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="inp-codigo">Código / Matrícula</label>
+          <input
+            class="field-input"
+            id="inp-codigo"
+            type="text"
+            placeholder="Ej. 2024-1234 (opcional)"
+            maxlength="30"
+          />
+          <span class="field-hint"
+            >Opcional. Ayuda al docente a identificarte.</span
+          >
+        </div>
+
+        <button class="btn-main" onclick="startQuiz()">Iniciar quiz →</button>
+      </div>
+    </section>
+
+    <!-- ══ QUIZ ══ -->
+    <section id="quiz-section">
+      <div class="eyebrow">Unidad 5 · Quiz</div>
+      <div class="progress-bar-wrap">
+        <div
+          class="progress-bar-fill"
+          id="progress-fill"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div class="progress-label">
+        <span id="progress-text">Pregunta 1 de 10</span>
+        <span id="score-live">Aciertos: 0</span>
+      </div>
+      <div class="student-badge" id="student-badge"></div>
+      <div id="q-container"></div>
+    </section>
+
+    <!-- ══ RESULTS ══ -->
+    <section id="results">
+      <div class="eyebrow">Resultado final</div>
+      <div class="save-status" id="save-status"></div>
+      <div class="score-box" id="score-box">
+        <div class="big-score" id="big-score">0/10</div>
+        <div class="score-label" id="score-label">Puntaje</div>
+        <div class="score-msg" id="score-msg"></div>
+        <div class="score-student" id="score-student"></div>
+      </div>
+      <h2 style="margin-bottom: 20px">Revisión completa</h2>
+      <div class="review-list" id="review-list"></div>
+      <div style="margin-top: 36px">
+        <button class="btn-retry" onclick="restartQuiz()">
+          ↺ Nueva evaluación
+        </button>
+      </div>
+    </section>
+
+    <script>
+      // ══════════════════════════════════════════════════════
+      //  CONFIGURACIÓN FIREBASE
+      //  1. Ve a https://console.firebase.google.com
+      //  2. Crea un proyecto → Agrega una app web
+      //  3. Copia los valores que te da Firebase aquí abajo
+      //  4. En Firestore Database → Reglas, pon:
+      //       allow read, write: if true;   (para desarrollo)
+      // ══════════════════════════════════════════════════════
+      const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyBGVUbqNeNBth3d2QEOqsvA1dEW2ovKeg0",
+        authDomain: "quiz-unidad5-c86d8.firebaseapp.com",
+        projectId: "quiz-unidad5-c86d8",
+        storageBucket: "quiz-unidad5-c86d8.firebasestorage.app",
+        messagingSenderId: "226974496351",
+        appId: "1:226974496351:web:a93c597cf3d398a1d24dea",
+      };
+
+      let db = null;
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        db = firebase.firestore();
+      } catch (e) {
+        console.warn("Firebase no inicializado. Verifica FIREBASE_CONFIG.", e);
+      }
+
+      // ══════════════════════════════════════════════════════
+      //  PREGUNTAS
+      // ══════════════════════════════════════════════════════
+      const LETTERS = ["A", "B", "C", "D"];
+
+      const QUESTIONS = [
+        {
+          q: "¿Cuál es el principio fundamental en que se basa la Programación Dinámica?",
+          o: [
+            "Dividir el problema en subproblemas completamente independientes y resolverlos en paralelo.",
+            "Explorar todas las posibles soluciones mediante fuerza bruta y quedarse con la mejor.",
+            "El principio de optimalidad de Bellman: la solución óptima global se construye a partir de soluciones óptimas de sus subproblemas.",
+            "Ordenar los elementos del problema y aplicar búsqueda binaria repetidamente.",
+          ],
+          c: 2,
+          fb: "El <strong>principio de optimalidad de Bellman</strong> establece que cualquier subsecuencia de una solución óptima también debe ser óptima. Esto permite descomponer el problema y reutilizar resultados parciales.",
+        },
+        {
+          q: "¿Cuáles son las dos propiedades que debe cumplir un problema para ser resoluble con Programación Dinámica?",
+          o: [
+            "Complejidad polinomial y datos ordenados.",
+            "Subestructura óptima y subproblemas solapados.",
+            "Función objetivo lineal y restricciones enteras.",
+            "Grafo acíclico y pesos positivos en las aristas.",
+          ],
+          c: 1,
+          fb: "<strong>Subestructura óptima</strong>: la solución óptima contiene soluciones óptimas de sus subproblemas. <strong>Subproblemas solapados</strong>: los mismos subproblemas se resuelven repetidamente, por lo que vale la pena guardar los resultados.",
+        },
+        {
+          q: "¿Cuál es la diferencia principal entre <em>memoización</em> y <em>tabulación</em> en Programación Dinámica?",
+          o: [
+            "La memoización siempre es más rápida porque usa hardware especializado.",
+            "La tabulación solo funciona con problemas de grafos; la memoización con cualquier tipo.",
+            "La memoización es un enfoque top-down (recursivo con caché); la tabulación es bottom-up (iterativa, llenando una tabla desde los casos base).",
+            "Son sinónimos: ambas se refieren exactamente al mismo proceso de almacenar resultados.",
+          ],
+          c: 2,
+          fb: "<strong>Memoización (top-down)</strong>: se llama recursivamente y se cachea el resultado la primera vez. <strong>Tabulación (bottom-up)</strong>: se llena una tabla iterativamente desde los casos más pequeños, sin recursión.",
+        },
+        {
+          q: "La complejidad temporal del problema de la Mochila 0/1 resuelto con Programación Dinámica (tabulación) es:",
+          o: [
+            "O(n log n), donde n es el número de ítems.",
+            "O(2ⁿ), ya que hay que explorar todos los subconjuntos posibles.",
+            "O(n·W), donde n es el número de ítems y W es la capacidad de la mochila.",
+            "O(n²·W²) debido a la doble iteración sobre ítems y pesos.",
+          ],
+          c: 2,
+          fb: "La tabla de PD tiene dimensiones <strong>n × W</strong>. Cada celda se calcula en O(1), por lo que la complejidad total es <strong>O(n·W)</strong>. Esto se denomina <em>pseudopolinomial</em> porque depende del valor numérico de W.",
+        },
+        {
+          q: 'En el problema de la Mochila 0/1, el "0/1" hace referencia a:',
+          o: [
+            "Que los pesos de los objetos solo pueden ser 0 o 1.",
+            "Que cada objeto se puede incluir entero (1) o no incluir (0); no se admiten fracciones.",
+            "Que el beneficio de cada ítem es binario: cero o uno.",
+            "Que la mochila tiene exactamente dos compartimentos (0 y 1).",
+          ],
+          c: 1,
+          fb: "La restricción 0/1 indica que cada ítem se toma <strong>completo (1)</strong> o se <strong>descarta (0)</strong>. No es posible tomar una fracción de un ítem, lo que distingue este problema de la versión fraccionaria (resuelta con Greedy).",
+        },
+        {
+          q: "¿Por qué se utilizan algoritmos heurísticos en problemas como el TSP (Viajante de Comercio) o el VRP (Enrutamiento de Vehículos)?",
+          o: [
+            "Porque la Programación Dinámica no funciona con números enteros positivos.",
+            "Porque son problemas NP-difíciles y no se conoce ningún algoritmo exacto eficiente para instancias grandes.",
+            "Porque las heurísticas siempre garantizan la solución óptima global en menos tiempo.",
+            "Porque estos problemas solo tienen solución si se aplican técnicas de inteligencia artificial.",
+          ],
+          c: 1,
+          fb: "TSP y VRP son <strong>NP-difíciles</strong>: el tiempo de los algoritmos exactos crece de forma combinatoria con el tamaño. Las heurísticas ofrecen soluciones <em>muy buenas</em> en tiempo razonable, sin garantizar el óptimo absoluto.",
+        },
+        {
+          q: "¿Cuál de las siguientes afirmaciones describe correctamente a los Algoritmos Genéticos (AG)?",
+          o: [
+            "Exploran el espacio de soluciones copiando la solución más cercana a la óptima en cada iteración.",
+            "Son métodos exactos que garantizan encontrar el óptimo global en tiempo polinomial.",
+            "Mantienen una población de soluciones candidatas que evolucionan mediante selección, cruce y mutación, inspirándose en la evolución biológica.",
+            "Solo pueden aplicarse a problemas con variables continuas y función objetivo diferenciable.",
+          ],
+          c: 2,
+          fb: "Los <strong>Algoritmos Genéticos</strong> trabajan con una <em>población</em> de soluciones. En cada generación aplican <strong>selección</strong> (los mejores sobreviven), <strong>cruce</strong> (combinan dos soluciones) y <strong>mutación</strong> (cambios aleatorios), lo que permite escapar de óptimos locales.",
+        },
+        {
+          q: "La diferencia clave entre Programación Dinámica y las Metaheurísticas es:",
+          o: [
+            "La PD solo sirve para problemas de optimización continua; las metaheurísticas para problemas discretos.",
+            "La PD garantiza encontrar la solución óptima exacta; las metaheurísticas producen soluciones de muy alta calidad sin garantizar la optimalidad.",
+            "Las metaheurísticas son siempre más rápidas que la PD para cualquier tamaño de problema.",
+            "Ambas garantizan la solución óptima, pero la PD usa menos memoria.",
+          ],
+          c: 1,
+          fb: "<strong>PD</strong>: óptimo exacto garantizado, pero viable solo cuando el espacio de subproblemas es manejable. <strong>Metaheurísticas</strong>: soluciones de alta calidad en tiempo razonable para problemas grandes, sin garantía formal de optimalidad.",
+        },
+        {
+          q: "¿Cuál de las siguientes es una metaheurística basada en el comportamiento de colonias de hormigas?",
+          o: [
+            "Recocido Simulado (Simulated Annealing — SA).",
+            "Búsqueda Tabú (Tabu Search).",
+            "Optimización por Colonia de Hormigas (Ant Colony Optimization — ACO).",
+            "Algoritmo de Ascenso de Colinas (Hill Climbing).",
+          ],
+          c: 2,
+          fb: "<strong>ACO (Ant Colony Optimization)</strong> se inspira en cómo las hormigas reales depositan y siguen feromonas para encontrar el camino más corto. Es especialmente efectivo para problemas de enrutamiento como el TSP.",
+        },
+        {
+          q: "Un algoritmo Greedy (voraz) se diferencia de la Programación Dinámica principalmente en que:",
+          o: [
+            "El Greedy siempre obtiene la solución óptima global, mientras que la PD puede quedar atrapada en óptimos locales.",
+            "El Greedy toma la mejor decisión local en cada paso sin reconsiderar; la PD evalúa múltiples subproblemas y garantiza el óptimo global.",
+            "La PD solo puede aplicarse a problemas de grafos; el Greedy a cualquier tipo de problema.",
+            "Ambos producen el mismo resultado, pero el Greedy usa O(n²) memoria adicional.",
+          ],
+          c: 1,
+          fb: "Un algoritmo <strong>Greedy</strong> elige la opción localmente óptima en cada paso y nunca revisa esa decisión. Esto es eficiente, pero no siempre conduce al óptimo global. La <strong>PD</strong> explora y combina subproblemas para garantizar la solución óptima global.",
+        },
+      ];
+
+      // ══════════════════════════════════════════════════════
+      //  ESTADO
+      // ══════════════════════════════════════════════════════
+      let current = 0;
+      let score = 0;
+      let answers = [];
+      let answered = false;
+      let studentName = "";
+      let studentCode = "";
+      let startTime = null;
+
+      // ── Navegación entre secciones ──
+      function show(id) {
+        ["hero", "registro", "quiz-section", "results"].forEach((s) => {
+          const el = document.getElementById(s);
+          el.style.display = "none";
+        });
+        const target = document.getElementById(id);
+        target.style.display =
+          id === "quiz-section" || id === "results" ? "block" : "flex";
+      }
+
+      function goToRegistro() {
+        show("registro");
+        window.scrollTo(0, 0);
+        setTimeout(() => document.getElementById("inp-nombre").focus(), 100);
+      }
+
+      function startQuiz() {
+        const nombre = document.getElementById("inp-nombre").value.trim();
+        const err = document.getElementById("err-nombre");
+        if (!nombre) {
+          err.classList.add("show");
+          return;
+        }
+        err.classList.remove("show");
+
+        studentName = nombre;
+        studentCode = document.getElementById("inp-codigo").value.trim();
+        startTime = Date.now();
+
+        document.getElementById("student-badge").textContent =
+          "▶ " + studentName + (studentCode ? "  ·  " + studentCode : "");
+
+        current = 0;
+        score = 0;
+        answers = [];
+        answered = false;
+
+        show("quiz-section");
+        window.scrollTo(0, 0);
+        renderQuestion();
+      }
+
+      // ── Renderizar pregunta ──
+      function renderQuestion() {
+        answered = false;
+        const q = QUESTIONS[current];
+        const pct = (current / QUESTIONS.length) * 100;
+        document.getElementById("progress-fill").style.width = pct + "%";
+        document.getElementById("progress-text").textContent =
+          `Pregunta ${current + 1} de ${QUESTIONS.length}`;
+        document.getElementById("score-live").textContent =
+          `Aciertos: ${score}`;
+
+        document.getElementById("q-container").innerHTML = `
+    <div class="q-card">
+      <div class="q-number">Pregunta ${current + 1} / ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options" id="options">
+        ${q.o
+          .map(
+            (opt, i) => `
+          <button class="opt" id="opt-${i}" onclick="selectAnswer(${i})">
+            <span class="letter">${LETTERS[i]}</span>
+            <span>${opt}</span>
+          </button>
+        `,
+          )
+          .join("")}
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="q-nav">
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">
+          ${current < QUESTIONS.length - 1 ? "Siguiente pregunta →" : "Ver resultados →"}
+        </button>
+      </div>
+    </div>
+  `;
+      }
+
+      function selectAnswer(idx) {
+        if (answered) return;
+        answered = true;
+
+        const q = QUESTIONS[current];
+        const isCorrect = idx === q.c;
+        if (isCorrect) score++;
+        answers.push({ chosen: idx, correct: q.c, isCorrect });
+
+        QUESTIONS[current].o.forEach((_, i) => {
+          const el = document.getElementById("opt-" + i);
+          el.classList.add("locked");
+          if (i === q.c) el.classList.add("correct");
+          if (i === idx && !isCorrect) el.classList.add("wrong");
+        });
+
+        const fb = document.getElementById("feedback");
+        fb.className = "feedback show " + (isCorrect ? "ok" : "fail");
+        fb.innerHTML = (isCorrect ? "✔ Correcto. " : "✘ Incorrecto. ") + q.fb;
+
+        document.getElementById("btn-next").classList.add("show");
+        document.getElementById("score-live").textContent =
+          `Aciertos: ${score}`;
+      }
+
+      function nextQuestion() {
+        current++;
+        if (current >= QUESTIONS.length) {
+          showResults();
+        } else {
+          renderQuestion();
+          window.scrollTo(0, 0);
+        }
+      }
+
+      // ── Guardar en Firestore ──
+      async function saveToFirestore(payload) {
+        const statusEl = document.getElementById("save-status");
+        if (!db) {
+          statusEl.className = "save-status error";
+          statusEl.textContent =
+            "⚠ Firebase no configurado. El resultado no fue guardado en la nube.";
+          return;
+        }
+        statusEl.className = "save-status saving";
+        statusEl.textContent = "↑ Guardando resultado…";
+        try {
+          await db.collection("evaluaciones").add(payload);
+          statusEl.className = "save-status saved";
+          statusEl.textContent = "✔ Resultado guardado correctamente.";
+        } catch (e) {
+          statusEl.className = "save-status error";
+          statusEl.textContent =
+            "⚠ No se pudo guardar. Verifica la conexión o las reglas de Firestore.";
+          console.error(e);
+        }
+      }
+
+      // ── Mostrar resultados ──
+      function showResults() {
+        show("results");
+        window.scrollTo(0, 0);
+
+        const pct = score / QUESTIONS.length;
+        const durSeg = Math.round((Date.now() - startTime) / 1000);
+        const bigScore = document.getElementById("big-score");
+        const box = document.getElementById("score-box");
+        const msg = document.getElementById("score-msg");
+        const lbl = document.getElementById("score-label");
+        const std = document.getElementById("score-student");
+
+        bigScore.textContent = `${score}/10`;
+        lbl.textContent = `${Math.round(pct * 100)}% de aciertos`;
+        std.textContent =
+          studentName + (studentCode ? " · " + studentCode : "");
+
+        if (pct === 1) {
+          box.className = "score-box perfect";
+          msg.textContent =
+            "¡Perfecto! Dominas Programación Dinámica y las metaheurísticas.";
+        } else if (pct >= 0.8) {
+          box.className = "score-box good";
+          msg.textContent =
+            "Muy bien. Comprensión sólida de la Unidad 5. Revisa los ítems fallidos.";
+        } else if (pct >= 0.6) {
+          box.className = "score-box regular";
+          msg.textContent =
+            "Resultado aceptable. Refuerza Bellman, complejidades y metaheurísticas.";
+        } else {
+          box.className = "score-box low";
+          msg.textContent =
+            "Es recomendable repasar el material de la Unidad 5 antes de avanzar.";
+        }
+
+        // Guardar en Firestore
+        const payload = {
+          nombre: studentName,
+          codigo: studentCode,
+          puntaje: score,
+          total: QUESTIONS.length,
+          porcentaje: Math.round(pct * 100),
+          duracion_seg: durSeg,
+          fecha: firebase.firestore
+            ? firebase.firestore.FieldValue.serverTimestamp()
+            : new Date().toISOString(),
+          respuestas: answers.map((a, i) => ({
+            pregunta: i + 1,
+            elegida: LETTERS[a.chosen],
+            correcta: LETTERS[a.correct],
+            correcto: a.isCorrect,
+          })),
+        };
+        saveToFirestore(payload);
+
+        // Revisión
+        document.getElementById("review-list").innerHTML = QUESTIONS.map(
+          (q, i) => {
+            const a = answers[i];
+            const cls = a.isCorrect ? "correct-item" : "wrong-item";
+            return `
+      <div class="review-item ${cls}">
+        <div class="q-number" style="margin-bottom:6px">Pregunta ${i + 1}</div>
+        <div class="review-q">${q.q}</div>
+        <div class="review-meta">
+          ${
+            a.isCorrect
+              ? `<span class="tag-ok">✔ Correcto</span>`
+              : `<span class="tag-bad">✘ Respondiste: ${LETTERS[a.chosen]}. ${q.o[a.chosen]}</span>`
+          }
+          ${
+            !a.isCorrect
+              ? `<span class="tag-ans">✔ Correcta: ${LETTERS[a.correct]}. ${q.o[a.correct]}</span>`
+              : ""
+          }
+        </div>
+      </div>
+    `;
+          },
+        ).join("");
+      }
+
+      function restartQuiz() {
+        show("hero");
+        window.scrollTo(0, 0);
+        document.getElementById("inp-nombre").value = "";
+        document.getElementById("inp-codigo").value = "";
+      }
+    </script>
+  </body>
+</html>

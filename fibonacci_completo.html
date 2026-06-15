@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fibonacci: Recursividad vs Programación Dinámica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;600;700&family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #3b82f6;
+  --secondary: #ef4444;
+  --accent: #10b981;
+  --warning: #f59e0b;
+  --dark: #1f2937;
+  --light: #f9fafb;
+  --border: #e5e7eb;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  color: var(--dark);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+/* ==================== HEADER ==================== */
+header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  padding: 50px 40px;
+  text-align: center;
+  border-radius: 20px;
+  margin-bottom: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+header h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 3em;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+header p {
+  font-size: 1.2em;
+  opacity: 0.95;
+}
+
+/* ==================== COMPARISON GRID ==================== */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 1024px) {
+  .comparison-grid { grid-template-columns: 1fr; }
+}
+
+.approach-card {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-left: 6px solid var(--primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.approach-card.dp { border-left-color: var(--accent); }
+
+.approach-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.05), transparent);
+  border-radius: 50%;
+}
+
+.approach-card h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.8em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--primary);
+}
+
+.approach-card.dp h2 { color: var(--accent); }
+
+.approach-card h2::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.code-block {
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 20px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 20px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95em;
+  line-height: 1.6;
+  border: 3px solid var(--primary);
+}
+
+.approach-card.dp .code-block { border-color: var(--accent); }
+
+.code-keyword { color: #3b82f6; font-weight: 700; }
+.code-string { color: #10b981; }
+.code-comment { color: #9ca3af; font-style: italic; }
+.code-number { color: #f59e0b; }
+
+.approach-card p {
+  font-size: 1.05em;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+/* ==================== SECTION ==================== */
+section {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-left: 6px solid var(--primary);
+}
+
+section h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 2.2em;
+  color: var(--primary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+section h2::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--secondary);
+  border-radius: 50%;
+}
+
+section h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5em;
+  color: var(--secondary);
+  margin-top: 25px;
+  margin-bottom: 15px;
+}
+
+section p {
+  font-size: 1.05em;
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.highlight {
+  background: linear-gradient(120deg, #fef3f2, #f0f4ff);
+  border-left: 4px solid var(--secondary);
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.highlight.success {
+  background: linear-gradient(120deg, #f0fdf4, #ecfdf5);
+  border-left-color: var(--accent);
+}
+
+/* ==================== INTERACTIVE DEMO ==================== */
+.demo-section {
+  background: linear-gradient(135deg, #f0f4ff, #fef3f2);
+  border: 3px dashed var(--primary);
+  border-radius: 16px;
+  padding: 30px;
+  margin: 30px 0;
+}
+
+.demo-section h3 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.demo-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin: 25px 0;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-weight: 700;
+  font-size: 0.9em;
+  color: var(--dark);
+}
+
+.input-group input {
+  padding: 10px;
+  border: 3px solid var(--border);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--primary), #1e40af);
+  color: white;
+}
+
+.btn.primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+}
+
+.btn.secondary {
+  background: linear-gradient(135deg, var(--accent), #059669);
+  color: white;
+}
+
+.btn.secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+}
+
+.btn:active { transform: translateY(-1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ==================== RESULTS ==================== */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.result-card {
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.result-card h4 {
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.result-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2em;
+  font-weight: 900;
+  color: var(--primary);
+  margin: 10px 0;
+}
+
+.result-card.recursive { border-color: var(--secondary); }
+.result-card.recursive .result-value { color: var(--secondary); }
+
+.result-card.dynamic { border-color: var(--accent); }
+.result-card.dynamic .result-value { color: var(--accent); }
+
+.result-unit {
+  font-size: 0.85em;
+  color: #6b7280;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ==================== VISUALIZATION ==================== */
+.visualization {
+  background: white;
+  border: 3px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 25px 0;
+  text-align: center;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.canvas-label {
+  font-weight: 700;
+  color: var(--dark);
+  margin-top: 15px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ==================== STEPS ==================== */
+.steps {
+  margin: 30px 0;
+}
+
+.step {
+  background: white;
+  border-left: 6px solid var(--primary);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 15px 0;
+  position: relative;
+  padding-left: 50px;
+}
+
+.step.dp { border-left-color: var(--accent); }
+
+.step-number {
+  position: absolute;
+  left: 12px;
+  top: 20px;
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
+
+.step.dp .step-number { background: var(--accent); }
+
+.step h4 {
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.step.dp h4 { color: var(--accent); }
+
+/* ==================== COMPARISON TABLE ==================== */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.comparison-table thead {
+  background: linear-gradient(135deg, var(--primary), #1e40af);
+  color: white;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 500;
+}
+
+.comparison-table th {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+}
+
+.comparison-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.comparison-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.metric-good { color: var(--accent); font-weight: 700; }
+.metric-bad { color: var(--secondary); font-weight: 700; }
+
+/* ==================== FIBER TABLE ==================== */
+.fib-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.fib-table th,
+.fib-table td {
+  border: 2px solid var(--border);
+  padding: 12px;
+  text-align: center;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.fib-table th {
+  background: linear-gradient(135deg, var(--accent), #059669);
+  color: white;
+  font-weight: 700;
+}
+
+.fib-table td.computing {
+  background: linear-gradient(135deg, #fef08a, #fed7aa);
+  font-weight: 700;
+  animation: pulse 0.6s ease-in-out;
+}
+
+.fib-table td.done {
+  background: linear-gradient(135deg, var(--accent), #10b981);
+  color: white;
+  font-weight: 700;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* ==================== TREE VISUALIZATION ==================== */
+.tree-container {
+  background: linear-gradient(135deg, #f0f4ff, #fef3f2);
+  border: 3px dashed var(--primary);
+  border-radius: 12px;
+  padding: 25px;
+  margin: 25px 0;
+  position: relative;
+}
+
+.tree-node {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), #1e40af);
+  color: white;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  margin: 8px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  position: relative;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tree-node.repeated {
+  background: linear-gradient(135deg, var(--secondary), #dc2626);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+.tree-legend {
+  display: flex;
+  gap: 25px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  font-size: 0.95em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.legend-dot.first { background: linear-gradient(135deg, var(--primary), #1e40af); }
+.legend-dot.repeated { background: linear-gradient(135deg, var(--secondary), #dc2626); }
+
+/* ==================== ANIMATION ==================== */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: slideIn 0.6s ease-out;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  header h1 { font-size: 2em; }
+  .comparison-grid,
+  .results-grid { grid-template-columns: 1fr; }
+  section { padding: 25px; }
+  .comparison-table th,
+  .comparison-table td { padding: 10px; }
+  .demo-controls { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <h1>🔄 Fibonacci: Recursividad vs Programación Dinámica</h1>
+    <p>Entiende por qué la PD es millones de veces más rápida</p>
+  </header>
+
+  <!-- CODIGO: LADO A LADO -->
+  <div class="comparison-grid">
+    
+    <!-- RECURSIVIDAD INGENUA -->
+    <div class="approach-card">
+      <h2>Recursividad Ingenua ⚠️</h2>
+      <p>El enfoque más obvio, pero <strong>extremadamente ineficiente</strong>. Recalcula los mismos valores una y otra vez.</p>
+      
+      <div class="code-block">
+<span class="code-keyword">def</span> fib_recursivo(n):
+    <span class="code-comment"># Caso base</span>
+    <span class="code-keyword">if</span> n <= <span class="code-number">1</span>:
+        <span class="code-keyword">return</span> n
+    
+    <span class="code-comment"># Caso recursivo</span>
+    <span class="code-keyword">return</span> fib_recursivo(n-<span class="code-number">1</span>) + \
+           fib_recursivo(n-<span class="code-number">2</span>)
+
+<span class="code-comment"># Ejemplo</span>
+resultado = fib_recursivo(<span class="code-number">5</span>)
+<span class="code-comment"># Resultado: 5</span>
+      </div>
+
+      <div class="highlight">
+        <strong>⚠️ Problema:</strong> Para calcular fib(5), calcula fib(3) dos veces, fib(2) tres veces, fib(1) cinco veces... Millones de cálculos repetidos.
+      </div>
+    </div>
+
+    <!-- PROGRAMACION DINAMICA -->
+    <div class="approach-card dp">
+      <h2>Programación Dinámica ✨</h2>
+      <p>El enfoque <strong>inteligente</strong>. Guarda resultados para evitar recalcular.</p>
+      
+      <div class="code-block">
+<span class="code-keyword">def</span> fib_dinamico(n):
+    <span class="code-comment"># Crear tabla para guardar resultados</span>
+    dp = [<span class="code-number">0</span>] * (n + <span class="code-number">1</span>)
+    
+    <span class="code-comment"># Casos base</span>
+    dp[<span class="code-number">0</span>] = <span class="code-number">0</span>
+    <span class="code-keyword">if</span> n >= <span class="code-number">1</span>:
+        dp[<span class="code-number">1</span>] = <span class="code-number">1</span>
+    
+    <span class="code-comment"># Llenar tabla de abajo hacia arriba</span>
+    <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(<span class="code-number">2</span>, n + <span class="code-number">1</span>):
+        dp[i] = dp[i-<span class="code-number">1</span>] + dp[i-<span class="code-number">2</span>]
+    
+    <span class="code-keyword">return</span> dp[n]
+
+<span class="code-comment"># Ejemplo</span>
+resultado = fib_dinamico(<span class="code-number">5</span>)
+<span class="code-comment"># Resultado: 5</span>
+      </div>
+
+      <div class="highlight success">
+        <strong>✓ Ventaja:</strong> Cada valor se calcula <strong>UNA SOLA VEZ</strong>. Usa una tabla para guardar resultados previos.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DEMO INTERACTIVA -->
+  <section>
+    <h2>Demo Interactiva: Compara en Tiempo Real</h2>
+
+    <div class="demo-section">
+      <h3>🎮 Calcula Fibonacci(n) con ambos métodos</h3>
+      
+      <div class="demo-controls">
+        <div class="input-group">
+          <label for="fibN">¿Cuál es n?</label>
+          <input type="number" id="fibN" min="1" max="35" value="5">
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-end;">
+          <button class="btn primary" onclick="computeFib()">▶ Calcular</button>
+          <button class="btn secondary" onclick="resetFib()">↺ Limpiar</button>
+        </div>
+      </div>
+
+      <div class="results-grid" id="resultsGrid" style="display: none;">
+        <div class="result-card recursive">
+          <h4>Recursividad Ingenua</h4>
+          <div class="result-value" id="resultRecursive">—</div>
+          <div class="result-unit">Operaciones: <span id="opsRecursive">—</span></div>
+          <div class="result-unit">Tiempo: <span id="timeRecursive">—</span> ms</div>
+        </div>
+        <div class="result-card dynamic">
+          <h4>Programación Dinámica</h4>
+          <div class="result-value" id="resultDynamic">—</div>
+          <div class="result-unit">Operaciones: <span id="opsDynamic">—</span></div>
+          <div class="result-unit">Tiempo: <span id="timeDynamic">—</span> ms</div>
+        </div>
+      </div>
+
+      <div class="comparison-table" id="comparisonTable"></div>
+    </div>
+
+    <h3>Visualización del Árbol de Recursión</h3>
+    <div class="visualization">
+      <canvas id="treeCanvas" width="800" height="300"></canvas>
+      <div class="canvas-label" id="treeLabel">Selecciona n y calcula para ver el árbol</div>
+    </div>
+
+    <h3>Tabla DP paso a paso</h3>
+    <div class="visualization">
+      <table class="fib-table" id="dpTableViz"></table>
+      <div class="canvas-label">Cada celda = Fibonacci(i) calculado una sola vez</div>
+    </div>
+  </section>
+
+  <!-- EXPLICACION: PASO A PASO -->
+  <section>
+    <h2>¿Cómo funciona cada una? Paso a Paso</h2>
+
+    <h3>🔴 Recursividad Ingenua: fib(5)</h3>
+    <p>Veamos exactamente qué pasa cuando llamas <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">fib_recursivo(5)</code>:</p>
+
+    <div class="tree-container">
+      <div style="font-weight: 700; margin-bottom: 15px; color: var(--dark);">Árbol de llamadas (qué se ejecuta):</div>
+      
+      <div style="text-align: center; font-size: 0.9em; color: #6b7280; margin-bottom: 15px;">
+        Las líneas muestran quién llama a quién. <span style="color: var(--secondary);">Rojo</span> = se calcula varias veces
+      </div>
+
+      <pre style="background: white; border-left: 4px solid var(--primary); padding: 15px; border-radius: 8px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; line-height: 1.8;">
+<span style="color: var(--primary); font-weight: 700;">fib(5)</span>
+├── <span style="color: var(--primary);">fib(4)</span>
+│   ├── <span style="color: var(--primary);">fib(3)</span>
+│   │   ├── <span style="color: var(--primary);">fib(2)</span>
+│   │   │   ├── <span style="color: var(--secondary); font-weight: 900;">fib(1) ← SEGUNDA VEZ</span>
+│   │   │   └── <span style="color: var(--secondary); font-weight: 900;">fib(0) ← SEGUNDA VEZ</span>
+│   │   └── <span style="color: var(--secondary); font-weight: 900;">fib(1) ← TERCERA VEZ</span>
+│   └── <span style="color: var(--primary);">fib(2)</span>
+│       ├── <span style="color: var(--secondary); font-weight: 900;">fib(1) ← CUARTA VEZ</span>
+│       └── <span style="color: var(--secondary); font-weight: 900;">fib(0) ← TERCERA VEZ</span>
+└── <span style="color: var(--primary);">fib(3)</span>
+    ├── <span style="color: var(--primary);">fib(2)</span>
+    │   ├── <span style="color: var(--secondary); font-weight: 900;">fib(1) ← QUINTA VEZ</span>
+    │   └── <span style="color: var(--secondary); font-weight: 900;">fib(0) ← CUARTA VEZ</span>
+    └── <span style="color: var(--secondary); font-weight: 900;">fib(1) ← SEXTA VEZ</span>
+      </pre>
+
+      <div class="tree-legend">
+        <div class="legend-item">
+          <div class="legend-dot first"></div>
+          <span>Se calcula una sola vez</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot repeated"></div>
+          <span>Se calcula múltiples veces (¡DESPERDICIO!)</span>
+        </div>
+      </div>
+
+      <div class="highlight" style="margin-top: 15px;">
+        <strong>😱 Número total de llamadas para fib(5): 15 llamadas</strong><br>
+        Para fib(10): 177 llamadas<br>
+        Para fib(20): 21,891 llamadas<br>
+        Para fib(35): <span style="color: var(--secondary); font-weight: 900;">29,860,703 llamadas</span>
+      </div>
+    </div>
+
+    <h3>🟢 Programación Dinámica: fib(5)</h3>
+    <p>Aquí llenamos una tabla de izquierda a derecha, <strong>cada valor una sola vez</strong>:</p>
+
+    <div class="steps">
+      <div class="step dp">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Crear la tabla</h4>
+          <p>Declaramos una lista <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">dp = [0, 0, 0, 0, 0, 0]</code> (índices 0 a 5)</p>
+        </div>
+      </div>
+
+      <div class="step dp">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Casos base</h4>
+          <p><code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">dp[0] = 0, dp[1] = 1</code><br>
+          Tabla ahora: <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">[0, 1, 0, 0, 0, 0]</code></p>
+        </div>
+      </div>
+
+      <div class="step dp">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Llenar i=2</h4>
+          <p><code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">dp[2] = dp[1] + dp[0] = 1 + 0 = 1</code><br>
+          Tabla: <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">[0, 1, 1, 0, 0, 0]</code></p>
+        </div>
+      </div>
+
+      <div class="step dp">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>Llenar i=3</h4>
+          <p><code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">dp[3] = dp[2] + dp[1] = 1 + 1 = 2</code><br>
+          Tabla: <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">[0, 1, 1, 2, 0, 0]</code></p>
+        </div>
+      </div>
+
+      <div class="step dp">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h4>Llenar i=4</h4>
+          <p><code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">dp[4] = dp[3] + dp[2] = 2 + 1 = 3</code><br>
+          Tabla: <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">[0, 1, 1, 2, 3, 0]</code></p>
+        </div>
+      </div>
+
+      <div class="step dp">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h4>Llenar i=5 (¡final!)</h4>
+          <p><code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">dp[5] = dp[4] + dp[3] = 3 + 2 = 5</code><br>
+          Tabla final: <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px;">[0, 1, 1, 2, 3, 5]</code><br>
+          <span style="color: var(--accent); font-weight: 900;">✓ Respuesta: dp[5] = 5</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight success" style="margin-top: 25px;">
+      <strong>✓ Total de operaciones: 5 iteraciones</strong><br>
+      Para fib(10): 10 iteraciones<br>
+      Para fib(20): 20 iteraciones<br>
+      Para fib(35): <span style="color: var(--accent); font-weight: 900;">35 iteraciones</span> (vs 29.8 millones en recursividad)
+    </div>
+  </section>
+
+  <!-- TABLA COMPARATIVA -->
+  <section>
+    <h2>Tabla Comparativa: ¿Cuál es mejor?</h2>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Aspecto</th>
+          <th>Recursividad Ingenua</th>
+          <th>Programación Dinámica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Código</strong></td>
+          <td>Simple, intuitivo</td>
+          <td>Un poco más elaborado</td>
+        </tr>
+        <tr>
+          <td><strong>Tiempo (fib(35))</strong></td>
+          <td class="metric-bad">~5 segundos ⚠️</td>
+          <td class="metric-good">Instantáneo ✓</td>
+        </tr>
+        <tr>
+          <td><strong>Operaciones (fib(35))</strong></td>
+          <td class="metric-bad">29,860,703 llamadas</td>
+          <td class="metric-good">35 iteraciones</td>
+        </tr>
+        <tr>
+          <td><strong>Complejidad temporal</strong></td>
+          <td class="metric-bad">O(2ⁿ) exponencial</td>
+          <td class="metric-good">O(n) lineal</td>
+        </tr>
+        <tr>
+          <td><strong>Complejidad espacial</strong></td>
+          <td class="metric-good">O(n) pila de recursión</td>
+          <td class="metric-bad">O(n) tabla</td>
+        </tr>
+        <tr>
+          <td><strong>Recalculos</strong></td>
+          <td class="metric-bad">Sí, muchos</td>
+          <td class="metric-good">No, cada valor una vez</td>
+        </tr>
+        <tr>
+          <td><strong>Máximo n recomendado</strong></td>
+          <td class="metric-bad">n ≤ 30</td>
+          <td class="metric-good">n ≤ 10,000+</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- OPTIMIZACION ESPACIO -->
+  <section style="border-left-color: var(--warning);">
+    <h2>Bonus: Optimizar Espacio en PD</h2>
+
+    <p>La solución de PD usa O(n) espacio para la tabla. <strong>¿Podemos hacerlo mejor?</strong> Sí, observa que fib(i) solo depende de fib(i-1) e fib(i-2):</p>
+
+    <div class="code-block">
+<span class="code-keyword">def</span> fib_dinamico_optimizado(n):
+    <span class="code-comment"># Solo guardar los últimos DOS valores</span>
+    <span class="code-keyword">if</span> n <= <span class="code-number">1</span>:
+        <span class="code-keyword">return</span> n
+    
+    prev2 = <span class="code-number">0</span>    <span class="code-comment"># fib(i-2)</span>
+    prev1 = <span class="code-number">1</span>    <span class="code-comment"># fib(i-1)</span>
+    
+    <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(<span class="code-number">2</span>, n + <span class="code-number">1</span>):
+        actual = prev1 + prev2
+        prev2 = prev1
+        prev1 = actual
+    
+    <span class="code-keyword">return</span> prev1
+
+<span class="code-comment"># Ejemplo: fib_dinamico_optimizado(5) = 5</span>
+    </div>
+
+    <div class="highlight success">
+      <strong>✓ Ventaja:</strong> Complejidad espacial reducida de <strong>O(n) a O(1)</strong>. Mismo tiempo O(n), pero usando solo dos variables en lugar de una tabla.
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section style="border-left-color: #8b5cf6;">
+    <h2>Resumen: La Lección</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">A</div>
+        <div class="step-content">
+          <h4>Recursividad ingenua es intuitiva pero lenta</h4>
+          <p>Genera un árbol de llamadas que recalcula los mismos valores exponencialmente. Funciona para n pequeños (≤30).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">B</div>
+        <div class="step-content">
+          <h4>Programación Dinámica evita recalculos</h4>
+          <p>Guarda resultados en una tabla y los reutiliza. Transforma O(2ⁿ) en O(n).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">C</div>
+        <div class="step-content">
+          <h4>Puedes optimizar aún más</h4>
+          <p>Si solo necesitas los últimos dos valores, usa O(1) espacio en lugar de O(n).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">D</div>
+        <div class="step-content">
+          <h4>Aplica esto a cualquier problema recursivo</h4>
+          <p>Mochila, caminos, alineamiento de ADN... Si hay subproblemas solapados, la PD acelera exponencialmente.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+let callCount = 0;
+let callTree = {};
+
+function fib_recursive_count(n) {
+  callCount++;
+  if (n <= 1) return n;
+  return fib_recursive_count(n - 1) + fib_recursive_count(n - 2);
+}
+
+function fib_dynamic(n) {
+  if (n <= 1) return n;
+  const dp = [0, 1];
+  for (let i = 2; i <= n; i++) {
+    dp[i] = dp[i - 1] + dp[i - 2];
+  }
+  return dp[n];
+}
+
+function buildCallTree(n, node = {}) {
+  if (n <= 1) {
+    node.val = n;
+    node.children = [];
+    return node;
+  }
+  node.val = n;
+  node.children = [buildCallTree(n - 1), buildCallTree(n - 2)];
+  return node;
+}
+
+function drawTree(canvas, tree, x, y, offset) {
+  if (!tree) return;
+  const ctx = canvas.getContext('2d');
+  const radius = 20;
+
+  // Dibujar nodo
+  ctx.fillStyle = tree.repeated ? '#ef4444' : '#3b82f6';
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 12px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(tree.val, x, y);
+
+  // Dibujar líneas a hijos
+  if (tree.children && tree.children.length > 0) {
+    const nextY = y + 60;
+    tree.children.forEach((child, i) => {
+      const nextX = x + (i === 0 ? -offset : offset);
+      ctx.strokeStyle = '#d1d5db';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y + radius);
+      ctx.lineTo(nextX, nextY - radius);
+      ctx.stroke();
+
+      drawTree(canvas, child, nextX, nextY, offset / 2);
+    });
+  }
+}
+
+function computeFib() {
+  const n = parseInt(document.getElementById('fibN').value);
+  if (n < 1 || n > 35) {
+    alert('Selecciona un valor entre 1 y 35');
+    return;
+  }
+
+  document.getElementById('resultsGrid').style.display = 'grid';
+
+  // Recursividad
+  callCount = 0;
+  const t1 = performance.now();
+  const resRec = fib_recursive_count(n);
+  const t2 = performance.now();
+
+  document.getElementById('resultRecursive').textContent = resRec;
+  document.getElementById('opsRecursive').textContent = callCount.toLocaleString('es');
+  document.getElementById('timeRecursive').textContent = (t2 - t1).toFixed(2);
+
+  // Dinámica
+  const t3 = performance.now();
+  const resDyn = fib_dynamic(n);
+  const t4 = performance.now();
+
+  document.getElementById('resultDynamic').textContent = resDyn;
+  document.getElementById('opsDynamic').textContent = n;
+  document.getElementById('timeDynamic').textContent = (t4 - t3).toFixed(3);
+
+  // Tabla DP
+  drawDPTable(n);
+
+  // Árbol de recursión (solo para n pequeños)
+  if (n <= 10) {
+    const canvas = document.getElementById('treeCanvas');
+    canvas.width = Math.min(800, 100 * Math.pow(2, n / 2));
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#f9fafb';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const tree = buildCallTree(n);
+    drawTree(canvas, tree, canvas.width / 2, 20, canvas.width / 4);
+    document.getElementById('treeLabel').textContent = `Árbol de llamadas para fib(${n}). Rojo = se calcula más de una vez`;
+  } else {
+    document.getElementById('treeLabel').textContent = `El árbol para fib(${n}) es demasiado grande para visualizar (${callCount.toLocaleString('es')} nodos)`;
+  }
+
+  // Tabla de comparación
+  drawComparisonTable(n, callCount);
+}
+
+function drawDPTable(n) {
+  const dp = [0, 1];
+  for (let i = 2; i <= n; i++) {
+    dp[i] = dp[i - 1] + dp[i - 2];
+  }
+
+  let html = '<tr>';
+  for (let i = 0; i <= n; i++) {
+    html += `<th>i=${i}</th>`;
+  }
+  html += '</tr><tr>';
+  for (let i = 0; i <= n; i++) {
+    html += `<td class="done">F(${i})=${dp[i]}</td>`;
+  }
+  html += '</tr>';
+
+  document.getElementById('dpTableViz').innerHTML = html;
+}
+
+function drawComparisonTable(n, callCount) {
+  let html = '<thead><tr><th>Métrica</th><th>Recursividad</th><th>Dinámico</th></tr></thead><tbody>';
+  html += `<tr><td><strong>Llamadas/Iteraciones</strong></td><td>${callCount.toLocaleString('es')}</td><td>${n}</td></tr>`;
+  html += `<tr><td><strong>Ratio</strong></td><td colspan="2">${(callCount / n).toLocaleString('es', {maximumFractionDigits: 0})}× más lento</td></tr>`;
+  html += '</tbody>';
+
+  document.getElementById('comparisonTable').innerHTML = html;
+}
+
+function resetFib() {
+  document.getElementById('fibN').value = 5;
+  document.getElementById('resultsGrid').style.display = 'none';
+  document.getElementById('comparisonTable').innerHTML = '';
+  document.getElementById('dpTableViz').innerHTML = '';
+  document.getElementById('treeLabel').textContent = 'Selecciona n y calcula para ver el árbol';
+  const canvas = document.getElementById('treeCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f9fafb';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#d1d5db';
+  ctx.font = '14px Poppins';
+  ctx.textAlign = 'center';
+  ctx.fillText('Selecciona n y haz clic en Calcular', canvas.width / 2, canvas.height / 2);
+}
+
+// Inicializar canvas
+window.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.getElementById('treeCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f9fafb';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#d1d5db';
+  ctx.font = '14px Poppins';
+  ctx.textAlign = 'center';
+  ctx.fillText('Selecciona n y haz clic en Calcular', canvas.width / 2, canvas.height / 2);
+});
+</script>
+
+</body>
+</html>

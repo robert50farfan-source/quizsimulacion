@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 5 · Programación Dinámica y Algoritmos Heurísticos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0d0b14;
+  --paper:#f4efe6;
+  --paper-2:#ebe3d4;
+  --acid:#d6ff3f;
+  --coral:#ff5d3b;
+  --violet:#5b2be8;
+  --teal:#0fb5a0;
+  --gold:#ffb02e;
+  --line:#0d0b14;
+  --shadow:6px 6px 0 var(--ink);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Archivo',sans-serif;
+  overflow:hidden;
+  background-image:radial-gradient(var(--paper-2) 1.4px,transparent 1.4px);
+  background-size:22px 22px;
+}
+/* ---------- DECK ---------- */
+.deck{height:100vh;width:100vw;position:relative}
+.slide{
+  position:absolute;inset:0;
+  padding:clamp(20px,4vw,64px);
+  display:none;
+  flex-direction:column;
+  overflow-y:auto;
+  animation:slideIn .5s cubic-bezier(.2,.9,.2,1);
+}
+.slide.active{display:flex}
+@keyframes slideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.eyebrow{
+  font-family:'Space Mono',monospace;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;font-size:12px;
+  display:inline-flex;align-items:center;gap:10px;color:var(--violet);
+}
+.eyebrow::before{content:"";width:28px;height:3px;background:var(--coral)}
+h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;
+  font-size:clamp(40px,7vw,104px);letter-spacing:-.02em}
+h2{font-family:'Fraunces',serif;font-weight:900;line-height:.96;
+  font-size:clamp(30px,4.6vw,58px);letter-spacing:-.015em;margin-bottom:6px}
+h3{font-family:'Archivo',sans-serif;font-weight:900;font-size:clamp(18px,2vw,24px);text-transform:uppercase;letter-spacing:.01em}
+p{font-size:clamp(15px,1.35vw,19px);line-height:1.55;max-width:70ch}
+.lead{font-size:clamp(17px,1.6vw,22px);line-height:1.5}
+.mono{font-family:'Space Mono',monospace}
+.hl{background:var(--acid);padding:0 .25em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hl-c{background:var(--coral);color:var(--paper);padding:0 .25em}
+.hl-v{background:var(--violet);color:var(--paper);padding:0 .25em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--paper);border:3px solid var(--line);box-shadow:var(--shadow);padding:22px;border-radius:2px}
+.card.violet{background:var(--violet);color:var(--paper)}
+.card.coral{background:var(--coral);color:var(--paper)}
+.card.acid{background:var(--acid)}
+.card.teal{background:var(--teal);color:var(--paper)}
+.tag{display:inline-block;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;border:2px solid currentColor;padding:3px 9px;border-radius:99px;margin-bottom:10px}
+.spacer{flex:1}
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:14px}
+ul.clean li{display:flex;gap:12px;align-items:flex-start;font-size:clamp(15px,1.3vw,18px);line-height:1.4}
+ul.clean li b{font-weight:900}
+.num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--acid);
+  display:grid;place-items:center;font-family:'Space Mono',monospace;font-weight:700;font-size:14px}
+code,pre{font-family:'Space Mono',monospace}
+pre{background:var(--ink);color:#e9e4d8;padding:18px;border-radius:4px;font-size:13px;line-height:1.6;overflow-x:auto;border:3px solid var(--line);box-shadow:var(--shadow)}
+pre .k{color:var(--acid)}.pre .s{color:var(--gold)}pre .c{color:#7c7a86;font-style:italic}pre .n{color:#ff9b85}
+/* ---------- TITLE SLIDE ---------- */
+#s0{justify-content:center}
+.bigmark{position:absolute;right:-2vw;top:8vh;font-family:'Fraunces',serif;font-weight:900;
+  font-size:46vh;color:var(--paper-2);z-index:0;line-height:.8;user-select:none}
+#s0 .inner{position:relative;z-index:1}
+.pill-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;border:3px solid var(--line);
+  padding:8px 14px;border-radius:99px;background:var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.pill.a{background:var(--acid)}.pill.c{background:var(--coral);color:var(--paper)}.pill.v{background:var(--violet);color:var(--paper)}
+/* ---------- NAV ---------- */
+.nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:14px;z-index:50;
+  background:var(--ink);padding:9px 14px;border-radius:99px;box-shadow:var(--shadow)}
+.nav button{font-family:'Space Mono',monospace;font-weight:700;background:var(--acid);border:none;
+  width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:18px;transition:.15s}
+.nav button:hover{background:var(--coral);color:var(--paper);transform:scale(1.08)}
+.nav button:disabled{opacity:.3;cursor:default;transform:none;background:#555;color:#aaa}
+.nav .pos{color:var(--paper);font-family:'Space Mono',monospace;font-size:13px;min-width:62px;text-align:center}
+.progress{position:fixed;top:0;left:0;height:5px;background:var(--coral);z-index:60;transition:width .4s;width:0}
+.slidetag{position:fixed;top:14px;right:18px;font-family:'Space Mono',monospace;font-size:11px;
+  font-weight:700;letter-spacing:.1em;color:var(--ink);background:var(--acid);padding:5px 11px;
+  border:2px solid var(--line);border-radius:99px;z-index:50}
+/* ---------- INTERACTIVE BITS ---------- */
+.btn{font-family:'Space Mono',monospace;font-weight:700;font-size:14px;cursor:pointer;
+  border:3px solid var(--line);background:var(--acid);padding:11px 20px;border-radius:99px;
+  box-shadow:3px 3px 0 var(--ink);transition:.12s;text-transform:uppercase;letter-spacing:.05em}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.c{background:var(--coral);color:var(--paper)}
+.btn.v{background:var(--violet);color:var(--paper)}
+.btn.ghost{background:var(--paper)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+.slider-wrap{display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px}
+input[type=range]{-webkit-appearance:none;height:6px;background:var(--ink);border-radius:99px;width:160px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--coral);border:3px solid var(--ink);cursor:pointer}
+/* knapsack */
+.ks-items{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.ks-item{border:3px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer;background:var(--paper);
+  font-family:'Space Mono',monospace;font-size:13px;font-weight:700;transition:.12s;text-align:center;min-width:88px;box-shadow:3px 3px 0 var(--ink)}
+.ks-item.sel{background:var(--acid)}
+.ks-item .v{display:block;font-size:11px;font-weight:400;opacity:.7}
+.dptable{border-collapse:collapse;font-family:'Space Mono',monospace;font-size:12px;margin-top:12px}
+.dptable td,.dptable th{border:2px solid var(--line);width:36px;height:30px;text-align:center;background:var(--paper)}
+.dptable th{background:var(--ink);color:var(--acid)}
+.dptable td.lit{background:var(--gold);transition:.2s}
+.dptable td.path{background:var(--acid)}
+.readout{font-family:'Space Mono',monospace;font-weight:700;font-size:14px;background:var(--ink);color:var(--acid);
+  padding:12px 16px;border-radius:6px;margin-top:12px;display:inline-block}
+/* TSP canvas */
+.tsp-stage{position:relative;border:3px solid var(--line);background:var(--paper);border-radius:6px;box-shadow:var(--shadow);overflow:hidden}
+.statbar{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px}
+.statbar span b{color:var(--coral)}
+/* compare chart */
+.bars{display:flex;align-items:flex-end;gap:18px;height:200px;border-bottom:3px solid var(--line);padding:0 10px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.bar .fill{width:100%;border:3px solid var(--line);border-bottom:none;transition:height .8s cubic-bezier(.2,.9,.2,1);min-height:4px}
+.bar .lbl{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-align:center}
+/* QUIZ */
+.quiz-q{background:var(--paper);border:3px solid var(--line);box-shadow:var(--shadow);border-radius:6px;padding:22px;margin-bottom:18px}
+.quiz-q h3{margin-bottom:14px;text-transform:none;font-family:'Fraunces',serif}
+.opt{display:block;border:3px solid var(--line);border-radius:6px;padding:13px 16px;margin-bottom:10px;cursor:pointer;
+  font-size:15px;font-weight:500;transition:.12s;background:var(--paper)}
+.opt:hover{transform:translateX(4px)}
+.opt.correct{background:var(--acid);border-color:var(--ink)}
+.opt.wrong{background:var(--coral);color:var(--paper)}
+.opt.dim{opacity:.5}
+.scorebox{text-align:center;padding:36px;border:4px solid var(--line);box-shadow:var(--shadow);border-radius:8px;background:var(--violet);color:var(--paper);display:none}
+.scorebox h2{color:var(--acid)}
+.kbd{font-family:'Space Mono',monospace;font-size:11px;border:2px solid var(--line);border-radius:4px;padding:1px 6px;background:var(--paper)}
+.footer-note{font-family:'Space Mono',monospace;font-size:11px;opacity:.6;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="slidetag" id="slidetag">MAT216 · U5</div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 0 — TITLE -->
+  <section class="slide active" id="s0">
+    <div class="bigmark">5</div>
+    <div class="inner">
+      <span class="eyebrow">Modelación y Simulación · Mat216 · B3.6</span>
+      <h1>Programación<br>Dinámica<br><span class="hl-c">&amp; Heurísticas</span></h1>
+      <p class="lead" style="margin-top:22px">Cómo resolver problemas que parecen imposibles: <b>dividir, recordar y, cuando todo lo demás falla, buscar de forma inteligente.</b></p>
+      <div class="pill-row">
+        <span class="pill a">Principio de Bellman</span>
+        <span class="pill">Mochila 0/1</span>
+        <span class="pill c">Camino más corto</span>
+        <span class="pill v">Metaheurísticas</span>
+        <span class="pill">TSP en vivo</span>
+        <span class="pill a">Quiz final</span>
+      </div>
+      <p class="footer-note">Usa las flechas <span class="kbd">←</span> <span class="kbd">→</span> del teclado o los botones de abajo para navegar.</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 1 — ROADMAP -->
+  <section class="slide" id="s1">
+    <span class="eyebrow">Hoja de ruta de la unidad</span>
+    <h2>¿Qué vamos a dominar?</h2>
+    <p class="lead">Esta unidad tiene un arco: empezamos con soluciones <span class="hl">exactas y óptimas</span> y terminamos con soluciones <span class="hl-v">aproximadas pero rápidas</span> para cuando lo óptimo es inalcanzable.</p>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card acid">
+        <span class="tag">Saber conocer</span>
+        <h3>Fundamentos</h3>
+        <p style="font-size:15px">Principio de optimalidad de Bellman, subestructura óptima y subproblemas solapados.</p>
+      </div>
+      <div class="card violet">
+        <span class="tag">Saber hacer</span>
+        <h3>Implementar</h3>
+        <p style="font-size:15px">Mochila, camino más corto y comparación PD vs. fuerza bruta en Python.</p>
+      </div>
+      <div class="card coral">
+        <span class="tag">Saber hacer</span>
+        <h3>Aproximar</h3>
+        <p style="font-size:15px">Metaheurísticas (AG, SA, ACO) aplicadas a enrutamiento y planificación.</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <p class="footer-note">Elemento de competencia <b>B3.6.5</b> · 10 horas · Ponderación 20%</p>
+  </section>
+
+  <!-- SLIDE 2 — WHY DP -->
+  <section class="slide" id="s2">
+    <div class="grid2" style="flex:1;align-items:center">
+      <div>
+        <span class="eyebrow">El problema central</span>
+        <h2>La explosión combinatoria</h2>
+        <p>Muchos problemas de informática tienen un número de soluciones que crece <span class="hl-c">exponencialmente</span>. Calcular Fibonacci(50) de forma ingenua hace <b>más de mil millones</b> de llamadas repetidas.</p>
+        <ul class="clean">
+          <li><span class="num">1</span><span><b>Subestructura óptima:</b> la solución óptima se construye con soluciones óptimas de subproblemas.</span></li>
+          <li><span class="num">2</span><span><b>Subproblemas solapados:</b> los mismos subproblemas aparecen una y otra vez.</span></li>
+          <li><span class="num">3</span><span><b>La idea PD:</b> resuelve cada subproblema <i>una sola vez</i> y guarda el resultado (memoización / tabulación).</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag">Demo en vivo · Fibonacci</span>
+        <h3 style="margin-bottom:12px">Ingenuo vs. PD</h3>
+        <p style="font-size:14px">Mueve el deslizador y observa cuántas operaciones cuesta cada enfoque.</p>
+        <div class="slider-wrap" style="margin-top:14px">
+          <span>n =</span>
+          <input type="range" id="fibN" min="5" max="35" value="20">
+          <span id="fibNval" class="mono">20</span>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:16px;flex-wrap:wrap">
+          <div class="card coral" style="flex:1;box-shadow:none;padding:14px;min-width:130px">
+            <div class="mono" style="font-size:11px">RECURSIVO INGENUO</div>
+            <div class="mono" id="fibNaive" style="font-size:26px;font-weight:700">—</div>
+            <div class="mono" style="font-size:11px;opacity:.85">llamadas ≈ O(2ⁿ)</div>
+          </div>
+          <div class="card teal" style="flex:1;box-shadow:none;padding:14px;min-width:130px">
+            <div class="mono" style="font-size:11px">CON PD</div>
+            <div class="mono" id="fibDP" style="font-size:26px;font-weight:700">—</div>
+            <div class="mono" style="font-size:11px;opacity:.85">operaciones = O(n)</div>
+          </div>
+        </div>
+        <div class="readout" id="fibSpeed">Aceleración: —</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — BELLMAN -->
+  <section class="slide" id="s3">
+    <span class="eyebrow">El corazón teórico</span>
+    <h2>Principio de optimalidad de Bellman</h2>
+    <div class="card violet" style="margin:18px 0;max-width:90ch">
+      <p style="color:var(--paper);font-size:clamp(18px,2vw,24px);font-family:'Fraunces',serif;font-weight:600;line-height:1.4">
+        “Una política óptima tiene la propiedad de que, sean cuales sean el estado y la decisión iniciales, las decisiones restantes deben constituir una política óptima respecto al estado resultante.”
+      </p>
+    </div>
+    <div class="grid2">
+      <div>
+        <h3 style="margin-bottom:10px">En lenguaje humano</h3>
+        <p>Si la ruta más corta de A a C pasa por B, entonces el tramo de B a C es <b>también</b> la ruta más corta de B a C. No puede haber un atajo mejor "escondido" dentro de un óptimo.</p>
+        <p style="margin-top:14px">Esto permite escribir una <span class="hl">ecuación recursiva</span> (ecuación de Bellman) que define el valor óptimo en función de valores óptimos más pequeños.</p>
+      </div>
+      <div class="card acid">
+        <span class="tag">Ecuación genérica</span>
+        <pre style="box-shadow:none;margin-top:8px">V(estado) =
+   <span class="k">opt</span> [ costo(decisión)
+        + V(estado_siguiente) ]
+   sobre todas las
+   decisiones válidas</pre>
+        <p style="font-size:14px;margin-top:10px">Donde <code>opt</code> es <b>min</b> (costos) o <b>max</b> (ganancias).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — KNAPSACK INTERACTIVE -->
+  <section class="slide" id="s4">
+    <span class="eyebrow">Ejemplo clásico · interactivo</span>
+    <h2>El problema de la mochila 0/1</h2>
+    <p class="lead">Tienes una mochila con capacidad limitada y varios objetos con <b>peso</b> y <b>valor</b>. ¿Qué subconjunto maximiza el valor sin pasarte de peso? Selecciona objetos y observa cómo la PD encuentra el óptimo real.</p>
+    <div class="grid2" style="margin-top:18px;flex:1">
+      <div>
+        <h3 style="margin-bottom:6px">Objetos disponibles</h3>
+        <p class="footer-note" style="margin:0 0 6px">(haz clic para incluir/excluir un objeto del conjunto disponible)</p>
+        <div class="ks-items" id="ksItems"></div>
+        <div class="slider-wrap" style="margin-top:6px">
+          <span>Capacidad =</span>
+          <input type="range" id="ksCap" min="3" max="20" value="10">
+          <span id="ksCapVal" class="mono">10</span>
+        </div>
+        <div class="controls">
+          <button class="btn" id="ksSolve">▶ Resolver con PD</button>
+          <button class="btn ghost" id="ksReset">↺ Reiniciar</button>
+        </div>
+        <div class="readout" id="ksReadout">Valor óptimo: — &nbsp;|&nbsp; Objetos: —</div>
+      </div>
+      <div class="card">
+        <span class="tag">Tabla DP &nbsp;filas=objetos · columnas=capacidad</span>
+        <div style="overflow:auto;margin-top:8px">
+          <table class="dptable" id="ksTable"></table>
+        </div>
+        <p class="footer-note">Cada celda = mejor valor posible usando los primeros <i>i</i> objetos con capacidad <i>w</i>. La celda <b>amarilla</b> se ilumina al calcularse; el camino <b>verde</b> reconstruye la solución.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 — KNAPSACK CODE -->
+  <section class="slide" id="s5">
+    <span class="eyebrow">De la teoría al código</span>
+    <h2>Mochila 0/1 en Python</h2>
+    <div class="grid2" style="margin-top:14px">
+      <div>
+        <pre><span class="c"># Programación dinámica — tabulación</span>
+<span class="k">def</span> mochila(pesos, valores, W):
+    n = len(pesos)
+    dp = [[<span class="n">0</span>]*(W+<span class="n">1</span>) <span class="k">for</span> _ <span class="k">in</span> range(n+<span class="n">1</span>)]
+
+    <span class="k">for</span> i <span class="k">in</span> range(<span class="n">1</span>, n+<span class="n">1</span>):
+        <span class="k">for</span> w <span class="k">in</span> range(W+<span class="n">1</span>):
+            <span class="c"># opción A: no tomar el objeto i</span>
+            dp[i][w] = dp[i-<span class="n">1</span>][w]
+            <span class="c"># opción B: tomarlo (si cabe)</span>
+            <span class="k">if</span> pesos[i-<span class="n">1</span>] &lt;= w:
+                dp[i][w] = max(
+                    dp[i][w],
+                    valores[i-<span class="n">1</span>]
+                    + dp[i-<span class="n">1</span>][w-pesos[i-<span class="n">1</span>]]
+                )
+    <span class="k">return</span> dp[n][W]</pre>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px">Lectura de la recurrencia</h3>
+        <ul class="clean">
+          <li><span class="num">A</span><span>Para cada objeto comparamos <b>no incluirlo</b> (heredar la fila de arriba)…</span></li>
+          <li><span class="num">B</span><span>…contra <b>incluirlo</b>: su valor + el óptimo del peso restante.</span></li>
+          <li><span class="num">✓</span><span>Tomamos el <span class="hl">máximo</span>. La celda final <code>dp[n][W]</code> es la respuesta óptima global.</span></li>
+        </ul>
+        <div class="card teal" style="margin-top:18px">
+          <span class="tag">Complejidad</span>
+          <p style="font-size:15px;color:var(--paper)">Tiempo <b>O(n·W)</b> — pseudopolinomial. La fuerza bruta sería <b>O(2ⁿ)</b>. Con 30 objetos eso son <b>+1.000 millones</b> de combinaciones vs. una tabla manejable.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 — COMPARE PD vs BRUTE -->
+  <section class="slide" id="s6">
+    <span class="eyebrow">Evidencia · saber hacer</span>
+    <h2>PD vs. Fuerza bruta</h2>
+    <p class="lead">El portafolio de la unidad pide <b>comparar rendimiento</b>. Aquí lo visualizamos: ambas dan la <i>misma respuesta óptima</i>, pero el costo computacional diverge brutalmente.</p>
+    <div class="grid2" style="margin-top:18px;flex:1;align-items:center">
+      <div>
+        <div class="slider-wrap">
+          <span># objetos n =</span>
+          <input type="range" id="cmpN" min="4" max="28" value="12">
+          <span id="cmpNval" class="mono">12</span>
+        </div>
+        <div class="bars" style="margin-top:24px">
+          <div class="bar">
+            <span class="mono" id="cmpBruteVal" style="font-weight:700;font-size:13px">—</span>
+            <div class="fill" id="cmpBrute" style="background:var(--coral);height:10px"></div>
+            <span class="lbl">FUERZA BRUTA<br>O(2ⁿ)</span>
+          </div>
+          <div class="bar">
+            <span class="mono" id="cmpDPVal" style="font-weight:700;font-size:13px">—</span>
+            <div class="fill" id="cmpDP" style="background:var(--teal);height:10px"></div>
+            <span class="lbl">PROG. DINÁMICA<br>O(n·W)</span>
+          </div>
+        </div>
+        <p class="footer-note">Escala logarítmica · capacidad W fija = 50</p>
+      </div>
+      <div class="card violet">
+        <span class="tag">Lo que demuestra la gráfica</span>
+        <p style="color:var(--paper)">Con <b id="cmpNarr">12</b> objetos, la fuerza bruta explora <b id="cmpNarrBrute">4 096</b> combinaciones; la PD solo <b id="cmpNarrDP">650</b> celdas.</p>
+        <p style="color:var(--paper);margin-top:12px">Al duplicar n, la barra coral <b>se dispara</b> mientras la teal apenas crece. Esa es exactamente la lección: <span class="hl">la PD convierte lo intratable en tratable.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 — WHEN DP FAILS -->
+  <section class="slide" id="s7">
+    <span class="eyebrow">El giro de la unidad</span>
+    <h2>Cuando ni la PD alcanza</h2>
+    <div class="grid2" style="margin-top:14px;flex:1;align-items:center">
+      <div>
+        <p>Problemas como el <span class="hl-c">enrutamiento de vehículos (VRP)</span> o el <span class="hl-c">viajante de comercio (TSP)</span> son <b>NP-difíciles</b>: no se conoce ningún algoritmo exacto eficiente para tamaños grandes.</p>
+        <ul class="clean">
+          <li><span class="num">!</span><span>El TSP con 20 ciudades tiene <b>~10¹⁷</b> rutas posibles.</span></li>
+          <li><span class="num">≈</span><span>La respuesta práctica: <b>algoritmos heurísticos</b> que buscan soluciones <i>muy buenas</i> en tiempo razonable, sin garantizar la óptima.</span></li>
+        </ul>
+      </div>
+      <div class="grid3" style="gap:14px">
+        <div class="card acid" style="grid-column:1/-1"><h3>AG</h3><p style="font-size:14px">Algoritmos Genéticos — "evolucionan" poblaciones de soluciones mediante cruce y mutación.</p></div>
+        <div class="card coral" style="grid-column:1/-1"><h3>SA</h3><p style="font-size:14px;color:var(--paper)">Simulated Annealing — acepta empeoramientos al inicio para escapar de óptimos locales.</p></div>
+        <div class="card teal" style="grid-column:1/-1"><h3>ACO</h3><p style="font-size:14px;color:var(--paper)">Ant Colony — hormigas virtuales depositan "feromona" en buenas rutas.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 — TSP SIMULATION -->
+  <section class="slide" id="s8">
+    <span class="eyebrow">Simulación en vivo · Simulated Annealing</span>
+    <h2>Heurística resolviendo el TSP</h2>
+    <p class="lead">Genera ciudades aleatorias y observa cómo una metaheurística <b>mejora la ruta</b> iteración tras iteración, escapando de óptimos locales.</p>
+    <div class="grid2" style="margin-top:16px;flex:1">
+      <div>
+        <div class="controls">
+          <div class="slider-wrap"><span>Ciudades =</span><input type="range" id="tspCities" min="5" max="22" value="11"><span id="tspCitiesVal" class="mono">11</span></div>
+        </div>
+        <div class="controls">
+          <button class="btn" id="tspGen">🎲 Generar ciudades</button>
+          <button class="btn c" id="tspRun">▶ Optimizar (SA)</button>
+          <button class="btn ghost" id="tspStop">■ Detener</button>
+        </div>
+        <div class="statbar">
+          <span>Iteración: <b id="tspIter">0</b></span>
+          <span>Distancia: <b id="tspDist">—</b></span>
+          <span>Temperatura: <b id="tspTemp">—</b></span>
+        </div>
+        <div class="readout" id="tspBest" style="margin-top:14px">Mejor distancia hallada: —</div>
+        <p class="footer-note">Verde = mejora aceptada · Naranja = ruta de trabajo actual. Cada barrido reordena dos ciudades y decide si conserva el cambio.</p>
+      </div>
+      <div>
+        <div class="tsp-stage"><canvas id="tspCanvas" width="520" height="420" style="width:100%;display:block"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 — DP vs HEURISTIC TABLE -->
+  <section class="slide" id="s9">
+    <span class="eyebrow">Síntesis · saber ser</span>
+    <h2>Elegir la herramienta correcta</h2>
+    <p class="lead">La <b>honestidad intelectual</b> exige reconocer qué método aplica. No siempre la solución óptima vale el costo de obtenerla.</p>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card teal">
+        <h3 style="color:var(--paper)">Programación Dinámica</h3>
+        <ul class="clean" style="color:var(--paper)">
+          <li><span class="num" style="background:var(--paper);color:var(--teal)">✓</span><span>Garantiza la solución <b>óptima exacta</b>.</span></li>
+          <li><span class="num" style="background:var(--paper);color:var(--teal)">✓</span><span>Requiere subestructura óptima clara.</span></li>
+          <li><span class="num" style="background:var(--coral);color:var(--paper)">✕</span><span>Inviable si el espacio de estados explota.</span></li>
+          <li><span class="num" style="background:var(--paper);color:var(--teal)">→</span><span>Mochila, caminos, alineamiento, scheduling acotado.</span></li>
+        </ul>
+      </div>
+      <div class="card coral">
+        <h3 style="color:var(--paper)">Metaheurísticas</h3>
+        <ul class="clean" style="color:var(--paper)">
+          <li><span class="num" style="background:var(--paper);color:var(--coral)">✓</span><span>Soluciones <b>muy buenas</b> en tiempo razonable.</span></li>
+          <li><span class="num" style="background:var(--paper);color:var(--coral)">✓</span><span>Escalan a problemas enormes (VRP, TSP).</span></li>
+          <li><span class="num" style="background:var(--ink);color:var(--gold)">✕</span><span>No garantizan optimalidad.</span></li>
+          <li><span class="num" style="background:var(--paper);color:var(--coral)">→</span><span>Enrutamiento, planificación de proyectos, tuning.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10 — QUIZ INTRO -->
+  <section class="slide" id="s10">
+    <div style="margin:auto;text-align:center;max-width:60ch">
+      <span class="eyebrow" style="justify-content:center">Evaluación formativa</span>
+      <h1 style="font-size:clamp(48px,8vw,96px)">Quiz<br><span class="hl">final</span></h1>
+      <p class="lead" style="margin:22px auto">6 preguntas para consolidar el principio de Bellman, la mochila, complejidad y heurísticas. Respuesta inmediata y puntaje al terminar.</p>
+      <button class="btn c" style="font-size:16px;padding:16px 30px" onclick="go(11)">Comenzar quiz →</button>
+    </div>
+  </section>
+
+  <!-- SLIDE 11 — QUIZ -->
+  <section class="slide" id="s11">
+    <span class="eyebrow">Quiz · Unidad 5</span>
+    <h2 style="margin-bottom:8px">Pon a prueba lo aprendido</h2>
+    <div id="quizArea" style="max-width:90ch"></div>
+    <div class="scorebox" id="scoreBox">
+      <span class="eyebrow" style="justify-content:center;color:var(--acid)">Resultado</span>
+      <h2 id="scoreText">—</h2>
+      <p id="scoreMsg" style="color:var(--paper);margin:10px auto"></p>
+      <button class="btn" style="margin-top:14px" onclick="resetQuiz()">↺ Intentar de nuevo</button>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="Anterior">‹</button>
+  <span class="pos" id="pos">01 / 12</span>
+  <button id="next" aria-label="Siguiente">›</button>
+</div>
+
+<script>
+/* ============ NAVIGATION ============ */
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0;
+const tags=['PORTADA','RUTA','EXPLOSIÓN','BELLMAN','MOCHILA','CÓDIGO','PD vs BF','LÍMITES','TSP·SA','SÍNTESIS','QUIZ','QUIZ'];
+function render(){
+  slides.forEach((s,i)=>s.classList.toggle('active',i===cur));
+  document.getElementById('pos').textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  document.getElementById('prev').disabled=cur===0;
+  document.getElementById('next').disabled=cur===slides.length-1;
+  document.getElementById('progress').style.width=((cur)/(slides.length-1)*100)+'%';
+  document.getElementById('slidetag').textContent='MAT216 · U5 · '+tags[cur];
+  if(cur===8) setTimeout(()=>{if(!tsp.cities.length)tspGenerate();},60);
+}
+function go(i){cur=Math.max(0,Math.min(slides.length-1,i));render();}
+document.getElementById('next').onclick=()=>go(cur+1);
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'||e.key===' ')go(cur+1);
+  if(e.key==='ArrowLeft')go(cur-1);
+});
+
+/* ============ FIBONACCI DEMO ============ */
+const fibN=document.getElementById('fibN');
+function updFib(){
+  const n=+fibN.value;
+  document.getElementById('fibNval').textContent=n;
+  // naive calls ~ 2*Fib(n+1)-1
+  let a=1,b=1;for(let i=2;i<=n+1;i++){[a,b]=[b,a+b];}
+  const naive=2*a-1;
+  const dp=n;
+  document.getElementById('fibNaive').textContent=naive.toLocaleString('es');
+  document.getElementById('fibDP').textContent=dp.toLocaleString('es');
+  const speed=Math.round(naive/Math.max(dp,1));
+  document.getElementById('fibSpeed').textContent='Aceleración: ×'+speed.toLocaleString('es')+' menos trabajo con PD';
+}
+fibN.oninput=updFib;updFib();
+
+/* ============ KNAPSACK INTERACTIVE ============ */
+const allItems=[
+  {n:'CPU',p:2,v:6},{n:'RAM',p:3,v:5},{n:'SSD',p:4,v:8},
+  {n:'GPU',p:5,v:10},{n:'Red',p:1,v:3},{n:'PSU',p:6,v:9},{n:'Cache',p:2,v:4}
+];
+let ksSel=allItems.map((_,i)=>i<5);
+const ksItemsEl=document.getElementById('ksItems');
+function renderKsItems(){
+  ksItemsEl.innerHTML='';
+  allItems.forEach((it,i)=>{
+    const d=document.createElement('div');
+    d.className='ks-item'+(ksSel[i]?' sel':'');
+    d.innerHTML=`${it.n}<span class="v">peso ${it.p} · val ${it.v}</span>`;
+    d.onclick=()=>{ksSel[i]=!ksSel[i];renderKsItems();buildKsTable();};
+    ksItemsEl.appendChild(d);
+  });
+}
+const ksCap=document.getElementById('ksCap');
+function chosen(){return allItems.filter((_,i)=>ksSel[i]);}
+function buildKsTable(){
+  const items=chosen(),W=+ksCap.value,n=items.length;
+  const t=document.getElementById('ksTable');
+  let html='<tr><th>i\\w</th>';
+  for(let w=0;w<=W;w++)html+=`<th>${w}</th>`;
+  html+='</tr><tr><th>∅</th>';
+  for(let w=0;w<=W;w++)html+='<td data-i="0" data-w="'+w+'">0</td>';
+  html+='</tr>';
+  for(let i=1;i<=n;i++){
+    html+=`<tr><th>${items[i-1].n}</th>`;
+    for(let w=0;w<=W;w++)html+=`<td data-i="${i}" data-w="${w}">·</td>`;
+    html+='</tr>';
+  }
+  t.innerHTML=html;
+}
+ksCap.oninput=()=>{document.getElementById('ksCapVal').textContent=ksCap.value;buildKsTable();};
+function cell(i,w){return document.querySelector(`#ksTable td[data-i="${i}"][data-w="${w}"]`);}
+async function solveKs(){
+  const items=chosen(),W=+ksCap.value,n=items.length;
+  buildKsTable();
+  const dp=Array.from({length:n+1},()=>new Array(W+1).fill(0));
+  for(let i=1;i<=n;i++){
+    for(let w=0;w<=W;w++){
+      dp[i][w]=dp[i-1][w];
+      if(items[i-1].p<=w)dp[i][w]=Math.max(dp[i][w],items[i-1].v+dp[i-1][w-items[i-1].p]);
+      const c=cell(i,w);c.textContent=dp[i][w];c.classList.add('lit');
+      await new Promise(r=>setTimeout(r,12));
+      c.classList.remove('lit');
+    }
+  }
+  // backtrack
+  let w=W,picked=[];
+  for(let i=n;i>0;i--){
+    if(dp[i][w]!==dp[i-1][w]){picked.push(items[i-1].n);cell(i,w).classList.add('path');w-=items[i-1].p;}
+  }
+  document.getElementById('ksReadout').textContent=
+    `Valor óptimo: ${dp[n][W]}  |  Objetos: ${picked.length?picked.reverse().join(', '):'ninguno'}`;
+}
+document.getElementById('ksSolve').onclick=solveKs;
+document.getElementById('ksReset').onclick=()=>{buildKsTable();document.getElementById('ksReadout').textContent='Valor óptimo: —  |  Objetos: —';};
+renderKsItems();buildKsTable();
+
+/* ============ COMPARE PD vs BRUTE ============ */
+const cmpN=document.getElementById('cmpN');
+function updCmp(){
+  const n=+cmpN.value,W=50;
+  document.getElementById('cmpNval').textContent=n;
+  const brute=Math.pow(2,n);
+  const dp=n*(W+1);
+  const lb=Math.log10(brute),ld=Math.log10(dp);
+  const max=Math.max(lb,ld);
+  document.getElementById('cmpBrute').style.height=(lb/max*100)+'%';
+  document.getElementById('cmpDP').style.height=(ld/max*100)+'%';
+  const fmt=x=>x>=1e6?x.toExponential(1):Math.round(x).toLocaleString('es');
+  document.getElementById('cmpBruteVal').textContent=fmt(brute);
+  document.getElementById('cmpDPVal').textContent=fmt(dp);
+  document.getElementById('cmpNarr').textContent=n;
+  document.getElementById('cmpNarrBrute').textContent=fmt(brute);
+  document.getElementById('cmpNarrDP').textContent=fmt(dp);
+}
+cmpN.oninput=updCmp;updCmp();
+
+/* ============ TSP SIMULATED ANNEALING ============ */
+const tsp={cities:[],order:[],best:[],bestD:Infinity,running:false,iter:0,temp:0,raf:null};
+const cv=document.getElementById('tspCanvas'),ctx=cv.getContext('2d');
+const tspCities=document.getElementById('tspCities');
+tspCities.oninput=()=>document.getElementById('tspCitiesVal').textContent=tspCities.value;
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function tourLen(o){let s=0;for(let i=0;i<o.length;i++)s+=dist(tsp.cities[o[i]],tsp.cities[o[(i+1)%o.length]]);return s;}
+function tspGenerate(){
+  stopTsp();
+  const n=+tspCities.value,pad=40;
+  tsp.cities=Array.from({length:n},()=>({x:pad+Math.random()*(cv.width-2*pad),y:pad+Math.random()*(cv.height-2*pad)}));
+  tsp.order=tsp.cities.map((_,i)=>i);
+  tsp.best=[...tsp.order];tsp.bestD=tourLen(tsp.order);
+  tsp.iter=0;tsp.temp=100;
+  document.getElementById('tspIter').textContent='0';
+  document.getElementById('tspDist').textContent=Math.round(tsp.bestD);
+  document.getElementById('tspTemp').textContent='100';
+  document.getElementById('tspBest').textContent='Mejor distancia hallada: '+Math.round(tsp.bestD);
+  drawTsp(tsp.order,false);
+}
+function drawTsp(o,improved){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // route
+  ctx.lineWidth=3;
+  ctx.strokeStyle=improved?'#0fb5a0':'#ff5d3b';
+  ctx.beginPath();
+  o.forEach((idx,i)=>{const c=tsp.cities[idx];i?ctx.lineTo(c.x,c.y):ctx.moveTo(c.x,c.y);});
+  ctx.closePath();ctx.stroke();
+  // cities
+  tsp.cities.forEach((c,i)=>{
+    ctx.fillStyle='#0d0b14';ctx.beginPath();ctx.arc(c.x,c.y,7,0,7);ctx.fill();
+    ctx.fillStyle='#d6ff3f';ctx.beginPath();ctx.arc(c.x,c.y,3,0,7);ctx.fill();
+  });
+}
+function tspStep(){
+  if(!tsp.running)return;
+  // do a batch of SA moves per frame
+  for(let k=0;k<40;k++){
+    const n=tsp.order.length;
+    let i=Math.floor(Math.random()*n),j=Math.floor(Math.random()*n);
+    if(i===j)continue;
+    const cand=[...tsp.order];[cand[i],cand[j]]=[cand[j],cand[i]];
+    const dOld=tourLen(tsp.order),dNew=tourLen(cand);
+    if(dNew<dOld||Math.random()<Math.exp((dOld-dNew)/Math.max(tsp.temp,.001))){
+      tsp.order=cand;
+      if(dNew<tsp.bestD){tsp.bestD=dNew;tsp.best=[...cand];}
+    }
+    tsp.iter++;
+    tsp.temp=Math.max(0.01,100*Math.pow(0.9995,tsp.iter));
+  }
+  document.getElementById('tspIter').textContent=tsp.iter.toLocaleString('es');
+  document.getElementById('tspDist').textContent=Math.round(tourLen(tsp.order));
+  document.getElementById('tspTemp').textContent=tsp.temp.toFixed(2);
+  document.getElementById('tspBest').textContent='Mejor distancia hallada: '+Math.round(tsp.bestD);
+  drawTsp(tsp.best,true);
+  if(tsp.temp<=0.02){stopTsp();return;}
+  tsp.raf=requestAnimationFrame(tspStep);
+}
+function stopTsp(){tsp.running=false;if(tsp.raf)cancelAnimationFrame(tsp.raf);}
+document.getElementById('tspGen').onclick=tspGenerate;
+document.getElementById('tspRun').onclick=()=>{if(!tsp.cities.length)tspGenerate();if(tsp.running)return;tsp.running=true;tsp.temp=100;tsp.iter=0;tspStep();};
+document.getElementById('tspStop').onclick=stopTsp;
+
+/* ============ QUIZ ============ */
+const QUESTIONS=[
+  {q:'El principio de optimalidad de Bellman afirma que…',
+   o:['Toda solución factible es óptima','Las subdecisiones de una política óptima son también óptimas respecto al estado resultante','La fuerza bruta siempre encuentra el óptimo más rápido','Los subproblemas nunca se repiten'],c:1},
+  {q:'¿Qué dos propiedades debe tener un problema para aplicar Programación Dinámica?',
+   o:['Linealidad y continuidad','Aleatoriedad y memoria','Subestructura óptima y subproblemas solapados','Independencia y aciclicidad'],c:2},
+  {q:'La complejidad temporal de la mochila 0/1 por PD (tabulación) es:',
+   o:['O(2ⁿ)','O(n·W)','O(n log n)','O(n!)'],c:1},
+  {q:'¿Por qué se usan algoritmos heurísticos en problemas como el TSP o el VRP?',
+   o:['Porque son más fáciles de programar que un bucle','Porque garantizan siempre la solución óptima','Porque son NP-difíciles y no existe método exacto eficiente para tamaños grandes','Porque la PD no funciona con números enteros'],c:2},
+  {q:'En Simulated Annealing, aceptar ocasionalmente una solución peor sirve para…',
+   o:['Reducir el uso de memoria','Escapar de óptimos locales','Garantizar el óptimo global','Acelerar la convergencia eliminando la aleatoriedad'],c:1},
+  {q:'Diferencia clave entre PD y metaheurísticas:',
+   o:['La PD es aproximada; las metaheurísticas son exactas','Ambas garantizan optimalidad','La PD garantiza el óptimo exacto; las metaheurísticas dan soluciones muy buenas sin garantizarlo','Las metaheurísticas solo sirven para problemas lineales'],c:2}
+];
+let answered=0,score=0;
+function buildQuiz(){
+  answered=0;score=0;
+  const area=document.getElementById('quizArea');
+  area.style.display='block';
+  document.getElementById('scoreBox').style.display='none';
+  area.innerHTML='';
+  QUESTIONS.forEach((item,qi)=>{
+    const box=document.createElement('div');box.className='quiz-q';
+    box.innerHTML=`<h3><span class="mono" style="color:var(--coral)">Q${qi+1}.</span> ${item.q}</h3>`;
+    item.o.forEach((opt,oi)=>{
+      const b=document.createElement('div');b.className='opt';b.textContent=opt;
+      b.onclick=()=>{
+        if(box.dataset.done)return;box.dataset.done='1';answered++;
+        const opts=[...box.querySelectorAll('.opt')];
+        opts.forEach((el,k)=>{el.classList.add('dim');if(k===item.c)el.classList.add('correct');});
+        if(oi===item.c){b.classList.add('correct');score++;}
+        else{b.classList.add('wrong');}
+        b.classList.remove('dim');
+        if(answered===QUESTIONS.length)showScore();
+      };
+      box.appendChild(b);
+    });
+    area.appendChild(box);
+  });
+}
+function showScore(){
+  document.getElementById('quizArea').style.display='none';
+  const sb=document.getElementById('scoreBox');sb.style.display='block';
+  document.getElementById('scoreText').textContent=score+' / '+QUESTIONS.length;
+  const pct=score/QUESTIONS.length;
+  let msg;
+  if(pct===1)msg='¡Perfecto! Dominas Bellman, la mochila y las heurísticas. Nivel estratégico alcanzado.';
+  else if(pct>=0.66)msg='Muy bien. Sólido manejo de los conceptos; repasa los puntos fallados para llegar al nivel autónomo.';
+  else msg='Buen comienzo. Vuelve a las slides de Bellman, mochila y Simulated Annealing y reintenta.';
+  document.getElementById('scoreMsg').textContent=msg;
+}
+function resetQuiz(){buildQuiz();}
+buildQuiz();
+
+render();
+</script>
+</body>
+</html>
