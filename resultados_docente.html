@@ -491,6 +491,72 @@
         background: var(--violet);
       }
 
+      /* ── Config intentos ── */
+      .config-bar {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow);
+        border-radius: 4px;
+        padding: 16px 24px;
+        background: var(--paper);
+        margin-bottom: 24px;
+      }
+      .config-label {
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+      .config-controls {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .config-val {
+        font-family: "Fraunces", serif;
+        font-weight: 900;
+        font-size: 32px;
+        min-width: 36px;
+        text-align: center;
+        line-height: 1;
+      }
+      .config-status {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--teal);
+        min-width: 80px;
+      }
+      .config-hint {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: #888;
+        margin-left: auto;
+      }
+
+      /* ── Reset btn ── */
+      .reset-btn {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        background: none;
+        border: 2px solid var(--coral);
+        color: var(--coral);
+        padding: 4px 12px;
+        border-radius: 99px;
+        cursor: pointer;
+        transition: 0.1s;
+        margin-top: 16px;
+      }
+      .reset-btn:hover {
+        background: var(--coral);
+        color: #fff;
+      }
+
       /* Pager */
       .pager {
         display: flex;
@@ -619,6 +685,18 @@
         </div>
       </div>
 
+      <!-- Config intentos -->
+      <div class="config-bar">
+        <span class="config-label">Intentos por estudiante</span>
+        <div class="config-controls">
+          <button class="btn-sm" onclick="changeMaxIntentos(-1)">−</button>
+          <span class="config-val" id="cfg-max">3</span>
+          <button class="btn-sm" onclick="changeMaxIntentos(1)">+</button>
+        </div>
+        <span class="config-status" id="cfg-status"></span>
+        <span class="config-hint">0 = sin límite</span>
+      </div>
+
       <!-- Toolbar -->
       <div class="toolbar">
         <input
@@ -655,6 +733,7 @@
               <th onclick="sortBy('puntaje')" data-col="puntaje">Puntaje</th>
               <th>%</th>
               <th>Estado</th>
+              <th onclick="sortBy('intento')" data-col="intento">Intento</th>
               <th onclick="sortBy('duracion_seg')" data-col="duracion_seg">
                 Tiempo
               </th>
@@ -663,7 +742,7 @@
           </thead>
           <tbody id="results-body">
             <tr>
-              <td colspan="9">
+              <td colspan="10">
                 <div class="empty-state">
                   <div class="loading-ring"></div>
                   <br />Cargando resultados…
@@ -716,13 +795,14 @@
       }
 
       // ── Estado ──
-      let allData = [];
-      let filtered = [];
-      let sortCol = "fecha";
-      let sortDir = "desc";
-      let filterMode = "all";
-      let currentPage = 1;
-      const PAGE_SIZE = 20;
+      let allData           = [];
+      let filtered          = [];
+      let sortCol           = "fecha";
+      let sortDir           = "desc";
+      let filterMode        = "all";
+      let currentPage       = 1;
+      const PAGE_SIZE       = 20;
+      let maxIntentosConfig = 3;
 
       const PREGUNTAS_LABELS = [
         "Principio de Bellman",
@@ -746,6 +826,7 @@
           sessionStorage.setItem("docente_auth", "1");
           document.getElementById("login").style.display = "none";
           document.getElementById("panel").style.display = "block";
+          loadConfig();
           loadData();
         } else {
           err.classList.add("show");
@@ -764,19 +845,67 @@
         if (sessionStorage.getItem("docente_auth") === "1") {
           document.getElementById("login").style.display = "none";
           document.getElementById("panel").style.display = "block";
+          loadConfig();
           loadData();
         }
         document.getElementById("filter-all").classList.add("active");
       });
 
+      // ── Config intentos ──
+      async function loadConfig() {
+        if (!db) return;
+        try {
+          const snap = await db.collection("config").doc("quiz").get();
+          if (snap.exists && snap.data().max_intentos !== undefined) {
+            maxIntentosConfig = snap.data().max_intentos;
+          }
+          document.getElementById("cfg-max").textContent = maxIntentosConfig;
+        } catch (e) {}
+      }
+
+      async function changeMaxIntentos(delta) {
+        const next = Math.max(0, Math.min(10, maxIntentosConfig + delta));
+        if (next === maxIntentosConfig) return;
+        maxIntentosConfig = next;
+        document.getElementById("cfg-max").textContent = maxIntentosConfig;
+        const statusEl = document.getElementById("cfg-status");
+        statusEl.textContent = "Guardando…";
+        try {
+          await db.collection("config").doc("quiz").set({ max_intentos: maxIntentosConfig });
+          statusEl.textContent = "✔ Guardado";
+          setTimeout(() => (statusEl.textContent = ""), 2000);
+        } catch (e) {
+          statusEl.textContent = "⚠ Error";
+        }
+        renderTable();
+      }
+
+      async function resetIntentos(nombre, codigo) {
+        if (!confirm(`¿Eliminar todos los intentos de "${nombre}"?\nEsta acción no se puede deshacer.`)) return;
+        try {
+          let q = db.collection("evaluaciones").where("nombre", "==", nombre);
+          q = q.where("codigo", "==", codigo);
+          const snap = await q.get();
+          if (snap.empty) { alert("No se encontraron intentos para este estudiante."); return; }
+          const batch = db.batch();
+          snap.docs.forEach((doc) => batch.delete(doc.ref));
+          await batch.commit();
+          document.getElementById("modal-bg").classList.remove("open");
+          alert(`Se eliminaron ${snap.docs.length} intento(s) de "${nombre}".`);
+          loadData();
+        } catch (e) {
+          alert("Error al resetear: " + e.message);
+        }
+      }
+
       // ── Cargar datos ──
       async function loadData() {
         document.getElementById("results-body").innerHTML =
-          '<tr><td colspan="9"><div class="empty-state"><div class="loading-ring"></div><br>Cargando…</div></td></tr>';
+          '<tr><td colspan="10"><div class="empty-state"><div class="loading-ring"></div><br>Cargando…</div></td></tr>';
 
         if (!db) {
           document.getElementById("results-body").innerHTML =
-            '<tr><td colspan="9"><div class="empty-state">⚠ Firebase no configurado. Actualiza FIREBASE_CONFIG.</div></td></tr>';
+            '<tr><td colspan="10"><div class="empty-state">⚠ Firebase no configurado. Actualiza FIREBASE_CONFIG.</div></td></tr>';
           return;
         }
 
@@ -794,8 +923,9 @@
               codigo: d.codigo || "—",
               puntaje: d.puntaje ?? 0,
               porcentaje: d.porcentaje ?? 0,
+              intento:      d.intento ?? null,
               duracion_seg: d.duracion_seg ?? 0,
-              respuestas: d.respuestas || [],
+              respuestas:   d.respuestas || [],
               fecha: d.fecha?.toDate
                 ? d.fecha.toDate()
                 : new Date(d.fecha || 0),
@@ -906,7 +1036,7 @@
 
         if (!slice.length) {
           document.getElementById("results-body").innerHTML =
-            '<tr><td colspan="9"><div class="empty-state">No hay resultados.</div></td></tr>';
+            '<tr><td colspan="10"><div class="empty-state">No hay resultados.</div></td></tr>';
           return;
         }
 
@@ -954,6 +1084,13 @@
         aprobado
           ? '<span class="badge-aprobado">Aprobado</span>'
           : '<span class="badge-reprobado">Reprobado</span>'
+      }</td>
+      <td class="td-code">${
+        r.intento
+          ? maxIntentosConfig > 0
+            ? r.intento + "/" + maxIntentosConfig
+            : r.intento
+          : "—"
       }</td>
       <td class="td-code">${durStr}</td>
       <td><button class="detail-btn" onclick="openDetail('${r.id}')">Ver</button></td>
@@ -1004,15 +1141,24 @@
               .join("")
           : '<p style="color:#888;font-size:14px">Sin detalle de respuestas.</p>';
 
+        const intentoStr = r.intento
+          ? `Intento ${r.intento}${maxIntentosConfig > 0 ? "/" + maxIntentosConfig : ""} · `
+          : "";
+
         document.getElementById("modal-content").innerHTML = `
     <div class="eyebrow" style="margin-bottom:10px">Detalle de evaluación</div>
     <h3>${escHtml(r.nombre)}</h3>
     <div class="modal-meta">
       ${r.codigo !== "—" ? "Código: " + escHtml(r.codigo) + " · " : ""}
-      Fecha: ${fechaStr} · Tiempo: ${durStr} · Puntaje: ${r.puntaje}/10 (${r.porcentaje}%)
+      ${intentoStr}Fecha: ${fechaStr} · Tiempo: ${durStr} · Puntaje: ${r.puntaje}/10 (${r.porcentaje}%)
     </div>
     <div>${respHtml}</div>
-    <button class="modal-close" onclick="closeModal()">Cerrar</button>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;align-items:center">
+      <button class="modal-close" onclick="closeModal()">Cerrar</button>
+      <button class="reset-btn" onclick="resetIntentos('${escHtml(r.nombre).replace(/'/g,"\\'")}','${escHtml(r.codigo).replace(/'/g,"\\'")}')">
+        ↺ Resetear todos los intentos de este estudiante
+      </button>
+    </div>
   `;
         document.getElementById("modal-bg").classList.add("open");
       }
@@ -1029,6 +1175,7 @@
           [
             "Nombre",
             "Código",
+            "Intento",
             "Fecha",
             "Puntaje",
             "Porcentaje",
@@ -1040,6 +1187,7 @@
           rows.push([
             `"${r.nombre}"`,
             `"${r.codigo}"`,
+            r.intento ?? "",
             r.fecha instanceof Date ? r.fecha.toISOString() : "",
             r.puntaje,
             r.porcentaje + "%",
