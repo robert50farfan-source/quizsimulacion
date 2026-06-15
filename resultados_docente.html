@@ -491,52 +491,91 @@
         background: var(--violet);
       }
 
-      /* ── Config intentos ── */
-      .config-bar {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
+      /* ── Config panel ── */
+      .config-panel {
         border: 3px solid var(--ink);
         box-shadow: var(--shadow);
         border-radius: 4px;
-        padding: 16px 24px;
         background: var(--paper);
         margin-bottom: 24px;
+        overflow: hidden;
       }
-      .config-label {
+      .config-row {
+        display: flex;
+        flex-wrap: wrap;
+        border-bottom: 2px solid var(--paper-2);
+      }
+      .config-row:last-child { border-bottom: none; }
+      .config-item {
+        flex: 1;
+        min-width: 180px;
+        padding: 16px 22px;
+        border-right: 2px solid var(--paper-2);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .config-item:last-child { border-right: none; }
+      .config-item-label {
         font-family: "Space Mono", monospace;
-        font-size: 12px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.13em;
+        color: var(--violet);
       }
       .config-controls {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
       }
       .config-val {
         font-family: "Fraunces", serif;
         font-weight: 900;
-        font-size: 32px;
-        min-width: 36px;
+        font-size: 30px;
+        min-width: 32px;
         text-align: center;
         line-height: 1;
       }
-      .config-status {
+      .config-hint {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        color: #888;
+      }
+      .config-save-status {
         font-family: "Space Mono", monospace;
         font-size: 11px;
         font-weight: 700;
         color: var(--teal);
-        min-width: 80px;
+        min-height: 16px;
       }
-      .config-hint {
+      .dt-input {
         font-family: "Space Mono", monospace;
-        font-size: 11px;
-        color: #888;
-        margin-left: auto;
+        font-size: 13px;
+        border: 3px solid var(--ink);
+        background: var(--paper);
+        padding: 9px 12px;
+        border-radius: 4px;
+        box-shadow: 3px 3px 0 var(--ink);
+        outline: none;
+        width: 100%;
+        transition: 0.15s;
       }
+      .dt-input:focus { border-color: var(--violet); box-shadow: 3px 3px 0 var(--violet); }
+      .status-badge {
+        font-family: "Space Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 7px 16px;
+        border-radius: 99px;
+        border: 3px solid var(--ink);
+        display: inline-block;
+        text-align: center;
+      }
+      .status-badge.open      { background: var(--acid); }
+      .status-badge.scheduled { background: var(--gold); }
+      .status-badge.closed    { background: #ffd5cc; color: var(--coral); }
+      .status-badge.unlimited { background: var(--paper-2); }
 
       /* ── Reset btn ── */
       .reset-btn {
@@ -685,16 +724,52 @@
         </div>
       </div>
 
-      <!-- Config intentos -->
-      <div class="config-bar">
-        <span class="config-label">Intentos por estudiante</span>
-        <div class="config-controls">
-          <button class="btn-sm" onclick="changeMaxIntentos(-1)">−</button>
-          <span class="config-val" id="cfg-max">3</span>
-          <button class="btn-sm" onclick="changeMaxIntentos(1)">+</button>
+      <!-- Config panel -->
+      <div class="config-panel">
+        <!-- Fila 1: Estado · Intentos · Duración -->
+        <div class="config-row">
+          <div class="config-item">
+            <span class="config-item-label">Estado del quiz</span>
+            <span class="status-badge unlimited" id="cfg-status-badge">—</span>
+            <span class="config-save-status" id="cfg-save-status"></span>
+          </div>
+          <div class="config-item">
+            <span class="config-item-label">Intentos por estudiante</span>
+            <div class="config-controls">
+              <button class="btn-sm" onclick="updateConfig('max_intentos', maxIntentosConfig - 1)">−</button>
+              <span class="config-val" id="cfg-max">3</span>
+              <button class="btn-sm" onclick="updateConfig('max_intentos', maxIntentosConfig + 1)">+</button>
+            </div>
+            <span class="config-hint">0 = sin límite</span>
+          </div>
+          <div class="config-item">
+            <span class="config-item-label">Duración del quiz (min)</span>
+            <div class="config-controls">
+              <button class="btn-sm" onclick="updateConfig('duracion_min', duracionConfig - 5)">−5</button>
+              <span class="config-val" id="cfg-dur">0</span>
+              <button class="btn-sm" onclick="updateConfig('duracion_min', duracionConfig + 5)">+5</button>
+            </div>
+            <span class="config-hint">0 = sin límite de tiempo</span>
+          </div>
         </div>
-        <span class="config-status" id="cfg-status"></span>
-        <span class="config-hint">0 = sin límite</span>
+        <!-- Fila 2: Ventana de disponibilidad -->
+        <div class="config-row">
+          <div class="config-item">
+            <label class="config-item-label" for="cfg-apertura">Apertura (fecha y hora)</label>
+            <input class="dt-input" id="cfg-apertura" type="datetime-local"
+              onchange="updateConfigDate('fecha_apertura', this.value)">
+            <span class="config-hint">Vacío = disponible siempre</span>
+          </div>
+          <div class="config-item">
+            <label class="config-item-label" for="cfg-cierre">Cierre (fecha y hora)</label>
+            <input class="dt-input" id="cfg-cierre" type="datetime-local"
+              onchange="updateConfigDate('fecha_cierre', this.value)">
+            <span class="config-hint">Vacío = sin fecha de cierre</span>
+          </div>
+          <div class="config-item" style="justify-content:flex-end">
+            <button class="btn-sm" onclick="clearDates()">✕ Borrar fechas</button>
+          </div>
+        </div>
       </div>
 
       <!-- Toolbar -->
@@ -851,33 +926,90 @@
         document.getElementById("filter-all").classList.add("active");
       });
 
-      // ── Config intentos ──
+      // ── Config ─────────────────────────────────────────────
+      let duracionConfig = 0;
+
+      function toDatetimeLocal(date) {
+        const p = n => n.toString().padStart(2, "0");
+        return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}`;
+      }
+
+      function updateStatusBadge() {
+        const badge = document.getElementById("cfg-status-badge");
+        const aVal  = document.getElementById("cfg-apertura").value;
+        const cVal  = document.getElementById("cfg-cierre").value;
+        if (!aVal && !cVal) {
+          badge.textContent = "Siempre abierto"; badge.className = "status-badge unlimited"; return;
+        }
+        const now      = new Date();
+        const apertura = aVal ? new Date(aVal) : null;
+        const cierre   = cVal ? new Date(cVal) : null;
+        if (apertura && now < apertura) {
+          badge.textContent = "Programado"; badge.className = "status-badge scheduled";
+        } else if (cierre && now > cierre) {
+          badge.textContent = "Cerrado"; badge.className = "status-badge closed";
+        } else {
+          badge.textContent = "Abierto"; badge.className = "status-badge open";
+        }
+      }
+
       async function loadConfig() {
         if (!db) return;
         try {
           const snap = await db.collection("config").doc("quiz").get();
-          if (snap.exists && snap.data().max_intentos !== undefined) {
-            maxIntentosConfig = snap.data().max_intentos;
+          if (snap.exists) {
+            const d = snap.data();
+            maxIntentosConfig = d.max_intentos ?? 3;
+            duracionConfig    = d.duracion_min ?? 0;
+            document.getElementById("cfg-max").textContent = maxIntentosConfig;
+            document.getElementById("cfg-dur").textContent = duracionConfig;
+            if (d.fecha_apertura?.toDate)
+              document.getElementById("cfg-apertura").value = toDatetimeLocal(d.fecha_apertura.toDate());
+            if (d.fecha_cierre?.toDate)
+              document.getElementById("cfg-cierre").value   = toDatetimeLocal(d.fecha_cierre.toDate());
           }
-          document.getElementById("cfg-max").textContent = maxIntentosConfig;
         } catch (e) {}
+        updateStatusBadge();
       }
 
-      async function changeMaxIntentos(delta) {
-        const next = Math.max(0, Math.min(10, maxIntentosConfig + delta));
-        if (next === maxIntentosConfig) return;
-        maxIntentosConfig = next;
-        document.getElementById("cfg-max").textContent = maxIntentosConfig;
-        const statusEl = document.getElementById("cfg-status");
+      async function saveConfigField(fields) {
+        const statusEl = document.getElementById("cfg-save-status");
         statusEl.textContent = "Guardando…";
         try {
-          await db.collection("config").doc("quiz").set({ max_intentos: maxIntentosConfig });
+          await db.collection("config").doc("quiz").set(fields, { merge: true });
           statusEl.textContent = "✔ Guardado";
           setTimeout(() => (statusEl.textContent = ""), 2000);
         } catch (e) {
-          statusEl.textContent = "⚠ Error";
+          statusEl.textContent = "⚠ Error al guardar";
         }
+      }
+
+      async function updateConfig(field, value) {
+        value = Math.max(0, Math.min(field === "max_intentos" ? 10 : 180, value));
+        if (field === "max_intentos") {
+          maxIntentosConfig = value;
+          document.getElementById("cfg-max").textContent = value;
+        } else {
+          duracionConfig = value;
+          document.getElementById("cfg-dur").textContent = value;
+        }
+        await saveConfigField({ [field]: value });
         renderTable();
+      }
+
+      async function updateConfigDate(field, value) {
+        const ts = value
+          ? firebase.firestore.Timestamp.fromDate(new Date(value))
+          : null;
+        await saveConfigField({ [field]: ts });
+        updateStatusBadge();
+      }
+
+      async function clearDates() {
+        document.getElementById("cfg-apertura").value = "";
+        document.getElementById("cfg-cierre").value   = "";
+        await saveConfigField({ fecha_apertura: null, fecha_cierre: null });
+        updateStatusBadge();
       }
 
       async function resetIntentos(nombre, codigo) {
