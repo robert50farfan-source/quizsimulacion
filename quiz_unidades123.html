@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz · Unidades 1, 2 y 3 · Mat216</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+/* ══════════════════════════════════════════════════
+   VARIABLES
+══════════════════════════════════════════════════ */
+:root{
+  --ink:    #0d0b14;
+  --paper:  #f2f0eb;
+  --paper2: #e5e0d5;
+  --teal:   #0fb5a0;
+  --coral:  #ff5d3b;
+  --violet: #5b2be8;
+  --gold:   #ffb02e;
+  --lime:   #d6ff3f;
+  --line:   #0d0b14;
+  --shadow: 6px 6px 0 var(--ink);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:'Archivo',sans-serif;
+  background-image:radial-gradient(var(--paper2) 1.4px, transparent 1.4px);
+  background-size:22px 22px;
+}
+h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;font-size:clamp(38px,6.5vw,84px);letter-spacing:-.02em}
+h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,3vw,36px);letter-spacing:-.01em;margin-bottom:20px}
+.eyebrow{
+  font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;font-size:12px;
+  display:inline-flex;align-items:center;gap:10px;color:var(--violet);margin-bottom:14px;
+}
+.eyebrow::before{content:"";width:28px;height:3px;background:var(--teal)}
+
+/* ══ HERO ══ */
+#hero{
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:100vh;padding:clamp(28px,6vw,80px);
+  background:var(--ink);color:var(--paper);position:relative;overflow:hidden;
+}
+#hero .eyebrow{color:var(--teal)}
+#hero .eyebrow::before{background:var(--coral)}
+.hero-num{
+  font-family:'Fraunces',serif;font-weight:900;
+  font-size:clamp(140px,26vw,320px);line-height:.8;
+  color:rgba(255,255,255,.06);position:absolute;right:-2vw;top:2vh;
+  user-select:none;letter-spacing:-.04em;pointer-events:none;
+}
+
+.course-card{
+  display:inline-flex;flex-wrap:wrap;gap:0;
+  border:3px solid rgba(255,255,255,.15);
+  border-radius:4px;margin-top:20px;overflow:hidden;
+}
+.cc-block{
+  padding:12px 20px;
+  border-right:2px solid rgba(255,255,255,.12);
+}
+.cc-block:last-child{border-right:none}
+.cc-label{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px}
+.cc-val{font-size:clamp(11px,1.1vw,13px);font-weight:700;color:rgba(255,255,255,.85)}
+
+.unit-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.ubadge{
+  font-family:'Space Mono',monospace;font-weight:700;font-size:11px;
+  padding:7px 16px;border:2px solid;border-radius:99px;
+}
+.ubadge.u1{border-color:var(--teal);color:var(--teal)}
+.ubadge.u2{border-color:var(--coral);color:var(--coral)}
+.ubadge.u3{border-color:var(--gold);color:var(--gold)}
+
+/* ══ REGISTRO ══ */
+#registro{
+  display:none;flex-direction:column;justify-content:center;
+  min-height:100vh;padding:clamp(28px,6vw,80px);
+  background:var(--ink);color:var(--paper);position:relative;overflow:hidden;
+}
+#registro .hero-num{font-size:clamp(100px,18vw,240px);opacity:.04}
+#registro .inner{position:relative;z-index:1;max-width:520px}
+.field-group{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.field-label{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.field-input{
+  font-family:'Archivo',sans-serif;font-size:clamp(15px,1.5vw,18px);
+  border:3px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);
+  color:var(--paper);padding:14px 18px;border-radius:4px;outline:none;width:100%;transition:.15s;
+}
+.field-input::placeholder{color:rgba(255,255,255,.3)}
+.field-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,181,160,.25)}
+.field-error{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--coral);display:none}
+.field-error.show{display:block}
+.field-hint{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4)}
+
+/* ══ BOTÓN PRINCIPAL ══ */
+.btn-main{
+  display:inline-flex;align-items:center;gap:12px;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:15px;
+  background:var(--teal);color:var(--ink);border:3px solid var(--teal);
+  padding:14px 28px;border-radius:99px;cursor:pointer;
+  box-shadow:var(--shadow);transition:.15s;margin-top:32px;
+}
+.btn-main:hover{background:var(--lime);border-color:var(--lime);box-shadow:8px 8px 0 rgba(255,255,255,.2)}
+
+.course-strip{
+  display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;
+}
+.cs-pill{
+  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.2);padding:5px 14px;border-radius:3px;
+  color:rgba(255,255,255,.6);
+}
+
+/* ══ CRONÓMETRO ══ */
+#timer-bar{
+  display:none;position:sticky;top:0;z-index:100;
+  background:var(--ink);border-bottom:3px solid var(--teal);
+  padding:10px 20px 8px;
+}
+#timer-bar.visible{display:block}
+.timer-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.timer-label{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.45)}
+.timer-display{font-family:'Space Mono',monospace;font-weight:700;font-size:22px;color:var(--teal);transition:color .4s}
+.timer-display.warn{color:var(--gold)}
+.timer-display.danger{color:var(--coral);animation:blink .5s ease infinite alternate}
+@keyframes blink{from{opacity:1}to{opacity:.4}}
+.timer-track{height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.timer-fill{height:100%;border-radius:99px;background:var(--teal);transition:width .9s linear,background .5s}
+.timer-fill.warn{background:var(--gold)}
+.timer-fill.danger{background:var(--coral)}
+
+/* ══ QUIZ SECTION ══ */
+#quiz-section{display:none;padding:clamp(20px,4vw,60px);max-width:880px;margin:0 auto}
+
+.progress-wrap{height:4px;background:var(--paper2);border-radius:99px;margin-bottom:10px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:99px;transition:width .35s}
+.progress-row{
+  font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+  color:#888;margin-bottom:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.progress-row span{color:var(--violet)}
+.student-badge{
+  font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--ink);background:var(--teal);
+  display:inline-block;padding:5px 14px;border-radius:3px;margin-bottom:6px;
+}
+.attempt-badge{
+  font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--violet);border:2px solid var(--violet);
+  display:none;padding:4px 14px;border-radius:3px;margin-bottom:18px;
+}
+.unit-tag{
+  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;
+}
+.unit-tag.u1{color:var(--teal)}
+.unit-tag.u2{color:var(--coral)}
+.unit-tag.u3{color:var(--gold)}
+
+/* CARD DE PREGUNTA */
+.q-card{
+  border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px;
+  padding:clamp(20px,3vw,40px);background:var(--paper);
+  animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.q-number{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#aaa;margin-bottom:8px}
+.q-text{font-family:'Archivo',sans-serif;font-weight:900;font-size:clamp(16px,2.2vw,24px);line-height:1.3;margin-bottom:24px;color:var(--ink)}
+
+/* OPCIONES */
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{
+  display:flex;align-items:flex-start;gap:14px;
+  border:3px solid var(--paper2);background:var(--paper);
+  padding:13px 16px;border-radius:4px;cursor:pointer;
+  transition:all .12s;font-size:clamp(13px,1.3vw,16px);
+  line-height:1.45;text-align:left;font-family:'Archivo',sans-serif;color:var(--ink);
+}
+.opt:hover:not(.locked){border-color:var(--ink);box-shadow:3px 3px 0 var(--ink);transform:translateY(-1px)}
+.opt .letter{
+  flex:none;width:30px;height:30px;border-radius:3px;
+  border:2px solid var(--ink);color:var(--ink);
+  display:grid;place-items:center;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:12px;flex-shrink:0;
+}
+.opt.correct{border-color:var(--teal)!important;background:#d6fff9!important;box-shadow:3px 3px 0 var(--teal)!important}
+.opt.correct .letter{border-color:var(--teal);color:var(--teal);background:rgba(15,181,160,.12)}
+.opt.wrong{border-color:var(--coral)!important;background:#fff0ed!important;box-shadow:3px 3px 0 var(--coral)!important}
+.opt.wrong .letter{border-color:var(--coral);color:var(--coral)}
+.opt.locked{cursor:default;transform:none!important}
+
+/* FEEDBACK */
+.feedback{
+  margin-top:16px;padding:14px 18px;border-radius:4px;
+  font-size:clamp(13px,1.2vw,15px);line-height:1.6;display:none;
+}
+.feedback.show{display:block}
+.feedback.ok{background:#d6fff9;border:3px solid var(--teal);color:#0a6b60}
+.feedback.fail{background:#fff0ed;border:3px solid var(--coral);color:#9c2a14}
+.feedback strong{color:var(--ink)}
+
+/* BOTÓN SIGUIENTE */
+.btn-next{
+  margin-top:20px;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;
+  background:var(--ink);color:var(--lime);border:3px solid var(--ink);
+  padding:11px 22px;border-radius:99px;cursor:pointer;
+  box-shadow:var(--shadow);transition:.12s;display:none;
+  align-items:center;gap:8px;
+}
+.btn-next:hover{background:var(--violet);box-shadow:6px 6px 0 var(--ink)}
+.btn-next.show{display:inline-flex}
+
+/* ══ RESULTADOS ══ */
+#results{display:none;padding:clamp(22px,4vw,60px);max-width:880px;margin:0 auto;animation:fadeUp .4s ease}
+
+.score-hero{
+  border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px;
+  padding:clamp(24px,4vw,52px);text-align:center;margin-bottom:32px;
+  position:relative;overflow:hidden;
+}
+.score-hero.perfect{background:var(--teal)}
+.score-hero.good   {background:var(--lime)}
+.score-hero.regular{background:var(--gold)}
+.score-hero.low    {background:#ffd5cc}
+.big-score{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(64px,12vw,130px);line-height:.88;letter-spacing:-.04em}
+.score-pct{font-family:'Space Mono',monospace;font-weight:700;font-size:clamp(14px,1.6vw,20px);margin-top:8px;letter-spacing:.08em}
+.score-msg{font-size:clamp(14px,1.4vw,18px);line-height:1.5;margin-top:12px;font-weight:700}
+.score-student{font-family:'Space Mono',monospace;font-size:11px;color:rgba(0,0,0,.5);margin-top:10px}
+
+.save-status{
+  display:none;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;
+  padding:12px 18px;border-radius:4px;margin-bottom:22px;text-align:center;
+  border:3px solid var(--ink);
+}
+.save-status.saving{display:block;background:var(--gold)}
+.save-status.saved {display:block;background:var(--lime)}
+.save-status.error {display:block;background:#ffd5cc;color:var(--coral)}
+
+/* REVISIÓN */
+.review-list{display:flex;flex-direction:column;gap:12px}
+.review-item{border:3px solid var(--paper2);border-radius:4px;padding:16px 20px;background:var(--paper)}
+.review-item.correct-item{border-color:var(--teal);background:#d6fff9}
+.review-item.wrong-item  {border-color:var(--coral);background:#fff0ed}
+.review-q{font-size:clamp(14px,1.4vw,16px);font-weight:700;margin-bottom:8px;line-height:1.4;color:var(--ink)}
+.review-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tag-ok {font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:var(--teal);color:var(--ink);padding:3px 10px;border-radius:99px}
+.tag-bad{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:var(--coral);color:#fff;padding:3px 10px;border-radius:99px}
+.tag-ans{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:var(--paper2);color:var(--ink);border:2px solid var(--ink);padding:3px 10px;border-radius:99px}
+
+.btn-retry{
+  margin-top:28px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;
+  background:var(--ink);color:var(--lime);border:3px solid var(--ink);
+  padding:12px 26px;border-radius:99px;cursor:pointer;box-shadow:var(--shadow);transition:.12s;
+  display:inline-flex;align-items:center;gap:10px;
+}
+.btn-retry:hover{background:var(--violet);box-shadow:8px 8px 0 var(--ink)}
+
+/* ══ PANTALLAS EXTRA ══ */
+#bloqueado,#no-disponible,#cerrado{
+  display:none;flex-direction:column;justify-content:center;
+  min-height:100vh;padding:clamp(28px,6vw,80px);
+  background:var(--ink);color:var(--paper);position:relative;overflow:hidden;
+}
+.extra-inner{position:relative;z-index:1;max-width:560px}
+
+.info-box{border-radius:4px;padding:clamp(18px,3vw,36px);margin-bottom:24px}
+.info-box.blocked {background:rgba(255,93,59,.12);border:3px solid var(--coral)}
+.info-box.gold    {background:rgba(255,176,46,.12);border:3px solid var(--gold)}
+.info-box.dim     {background:rgba(255,255,255,.06);border:3px solid rgba(255,255,255,.2)}
+.info-detail{font-family:'Space Mono',monospace;font-size:12px;line-height:2;color:rgba(255,255,255,.65);font-weight:700}
+.info-detail strong{color:var(--paper)}
+.big-countdown{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(48px,9vw,90px);line-height:1;color:var(--gold);margin-bottom:8px}
+.big-block    {font-family:'Fraunces',serif;font-weight:900;font-size:clamp(48px,9vw,90px);line-height:1;color:var(--coral);margin-bottom:8px}
+
+/* UNIT SEPARATOR (en review) */
+.unit-separator{
+  font-family:'Space Mono',monospace;font-weight:700;font-size:11px;
+  text-transform:uppercase;letter-spacing:.16em;
+  border-bottom:3px solid var(--ink);padding-bottom:8px;margin-top:26px;margin-bottom:4px;
+}
+.unit-separator.u1{color:var(--teal)}
+.unit-separator.u2{color:var(--coral)}
+.unit-separator.u3{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-num">123</div>
+  <div style="position:relative;z-index:1;max-width:820px">
+    <div class="eyebrow">Mat216 · Evaluación · Unidades 1, 2 y 3 · 2026</div>
+    <h1 style="color:#fff">Evaluación<br>Unidades<br><span style="color:var(--teal)">1, 2 y 3</span></h1>
+
+    <div class="course-card">
+      <div class="cc-block">
+        <div class="cc-label">Materia</div>
+        <div class="cc-val">Modelación y Simulación en Ing. Informática</div>
+      </div>
+      <div class="cc-block">
+        <div class="cc-label">Sigla / Semestre</div>
+        <div class="cc-val">Mat216 · Tercer semestre</div>
+      </div>
+      <div class="cc-block">
+        <div class="cc-label">Facultad</div>
+        <div class="cc-val">FIRNT</div>
+      </div>
+      <div class="cc-block">
+        <div class="cc-label">Docente</div>
+        <div class="cc-val">Ing. Robert Farfán</div>
+      </div>
+    </div>
+
+    <div class="unit-badges">
+      <span class="ubadge u1">Unidad 1 · Fundamentos de Modelación y Simulación</span>
+      <span class="ubadge u2">Unidad 2 · Modelos de Optimización</span>
+      <span class="ubadge u3">Unidad 3 · Simulación y Sistemas de Colas</span>
+    </div>
+
+    <p style="margin-top:20px;font-size:clamp(14px,1.3vw,17px);line-height:1.7;max-width:55ch;color:rgba(255,255,255,.65)">
+      15 preguntas de selección múltiple — 5 por unidad. Retroalimentación
+      inmediata y registro automático del puntaje.
+    </p>
+    <button class="btn-main" onclick="goToRegistro()">Iniciar evaluación →</button>
+  </div>
+</section>
+
+<!-- ══ REGISTRO ══ -->
+<section id="registro">
+  <div class="hero-num" style="color:rgba(255,255,255,.04)">ID</div>
+  <div class="inner">
+    <div class="eyebrow" style="color:var(--teal)">Paso 1 / 2 · Identificación</div>
+    <div class="course-strip">
+      <span class="cs-pill">Mat216</span>
+      <span class="cs-pill">Unidades 1-2-3</span>
+      <span class="cs-pill">FIRNT</span>
+      <span class="cs-pill">Ing. Robert Farfán</span>
+    </div>
+    <h1 style="color:#fff;margin-bottom:28px">¿Quién<br>eres?</h1>
+
+    <div class="field-group">
+      <label class="field-label" for="inp-nombre">Nombre completo *</label>
+      <input class="field-input" id="inp-nombre" type="text"
+        placeholder="Ej. Pedro Mamani" autocomplete="name" maxlength="80">
+      <span class="field-error" id="err-nombre">▸ Por favor ingresa tu nombre.</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="inp-codigo">Código de estudiante</label>
+      <input class="field-input" id="inp-codigo" type="text" placeholder="Opcional" maxlength="30">
+      <span class="field-hint">Opcional · permite al docente identificarte</span>
+    </div>
+    <button class="btn-main" onclick="startQuiz()">Comenzar quiz →</button>
+  </div>
+</section>
+
+<!-- ══ QUIZ ══ -->
+<section id="quiz-section">
+  <!-- Cronómetro -->
+  <div id="timer-bar">
+    <div class="timer-top">
+      <span class="timer-label">⏱ Tiempo restante</span>
+      <span class="timer-display" id="timer-display">00:00</span>
+    </div>
+    <div class="timer-track">
+      <div class="timer-fill" id="timer-fill" style="width:100%"></div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="progress-row">
+    <span id="progress-text">Pregunta <span>1</span> de 15</span>
+    <span id="score-live">Aciertos: 0</span>
+  </div>
+  <div class="student-badge" id="student-badge"></div>
+  <div class="attempt-badge" id="attempt-badge"></div>
+  <div id="q-container"></div>
+</section>
+
+<!-- ══ RESULTADOS ══ -->
+<section id="results">
+  <div class="eyebrow">Resultado final · Mat216 · Unidades 1, 2 y 3</div>
+  <div class="course-strip">
+    <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">Mat216</span>
+    <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">FIRNT</span>
+    <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">Ing. Robert Farfán</span>
+  </div>
+  <div class="save-status" id="save-status"></div>
+  <div class="score-hero" id="score-hero">
+    <div class="big-score" id="big-score">0/15</div>
+    <div class="score-pct"  id="score-pct">0%</div>
+    <div class="score-msg"  id="score-msg"></div>
+    <div class="score-student" id="score-student"></div>
+  </div>
+  <h2>Revisión completa</h2>
+  <div class="review-list" id="review-list"></div>
+  <div><button class="btn-retry" onclick="restartQuiz()">↺ Nueva evaluación</button></div>
+</section>
+
+<!-- ══ NO DISPONIBLE ══ -->
+<section id="no-disponible">
+  <div class="hero-num" style="color:rgba(255,255,255,.04)">⏳</div>
+  <div class="extra-inner">
+    <div class="eyebrow" style="color:var(--gold)">Quiz no disponible aún</div>
+    <h1 style="color:#fff;margin-bottom:26px">Abre<br><span style="color:var(--gold)">Pronto</span></h1>
+    <div class="info-box gold">
+      <div class="big-countdown" id="nd-countdown">—</div>
+      <div class="info-detail">
+        Apertura: <strong id="nd-apertura">—</strong><br>
+        <span id="nd-cierre-info"></span>
+      </div>
+    </div>
+    <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:46ch">
+      La evaluación estará disponible a partir de la fecha indicada.
+      Esta página se actualiza automáticamente cada segundo.
+    </p>
+  </div>
+</section>
+
+<!-- ══ CERRADO ══ -->
+<section id="cerrado">
+  <div class="hero-num" style="color:rgba(255,93,59,.06)">✗</div>
+  <div class="extra-inner">
+    <div class="eyebrow" style="color:var(--coral)">Período cerrado</div>
+    <h1 style="color:var(--coral);margin-bottom:26px">Quiz<br>Cerrado</h1>
+    <div class="info-box dim">
+      <div class="info-detail">
+        El período de evaluación finalizó el<br>
+        <strong id="cl-cierre">—</strong>
+      </div>
+    </div>
+    <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">
+      Comunícate con tu docente si necesitas más información.
+    </p>
+  </div>
+</section>
+
+<!-- ══ BLOQUEADO ══ -->
+<section id="bloqueado">
+  <div class="hero-num" style="color:rgba(255,93,59,.06)">!</div>
+  <div class="extra-inner">
+    <div class="eyebrow" style="color:var(--coral)">Límite de intentos alcanzado</div>
+    <h1 style="color:var(--coral);margin-bottom:26px">Intentos<br>Agotados</h1>
+    <div class="info-box blocked">
+      <div class="big-block" id="block-num">0/0</div>
+      <div class="info-detail" id="block-detail"></div>
+    </div>
+    <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:46ch">
+      Si crees que hay un error, comunícate con tu docente para restablecer tus intentos.
+    </p>
+    <button class="btn-main" style="margin-top:22px" onclick="show('hero')">← Volver al inicio</button>
+  </div>
+</section>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  FIREBASE
+// ══════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBGVUbqNeNBth3d2QEOqsvA1dEW2ovKeg0",
+  authDomain:        "quiz-unidad5-c86d8.firebaseapp.com",
+  projectId:         "quiz-unidad5-c86d8",
+  storageBucket:     "quiz-unidad5-c86d8.firebasestorage.app",
+  messagingSenderId: "226974496351",
+  appId:             "1:226974496351:web:a93c597cf3d398a1d24dea"
+};
+
+const COLLECTION = "evaluaciones_u123";
+const CONFIG_DOC = "quiz_u123";
+
+let db = null;
+try {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  db = firebase.firestore();
+} catch(e) { console.warn("Firebase no inicializado.", e); }
+
+window.addEventListener("DOMContentLoaded", async () => {
+  if (db) {
+    try {
+      const snap = await db.collection("config").doc(CONFIG_DOC).get();
+      if (snap.exists) {
+        const d = snap.data();
+        if (d.max_intentos !== undefined) maxIntentos  = d.max_intentos;
+        if (d.duracion_min !== undefined) duracionMin  = d.duracion_min;
+        if (d.fecha_apertura?.toDate)    fechaApertura = d.fecha_apertura.toDate();
+        if (d.fecha_cierre?.toDate)      fechaCierre   = d.fecha_cierre.toDate();
+      }
+    } catch(e) {}
+  }
+  checkAvailability();
+});
+
+// ══════════════════════════════════════════════════════
+//  PREGUNTAS — 15 (5 por unidad)
+// ══════════════════════════════════════════════════════
+const LETTERS = ["A","B","C","D"];
+
+const QUESTIONS = [
+
+  // ── UNIDAD 1: Fundamentos de Modelación y Simulación ──────────────────
+
+  {
+    unidad: 1,
+    q: "¿Qué es un modelo en el contexto de la Modelación y Simulación?",
+    o: [
+      "Una copia física exacta del sistema real construida a escala reducida.",
+      "Una representación simplificada de un sistema real que captura sus características esenciales para su análisis y comprensión.",
+      "Un programa de computadora que realiza únicamente cálculos estadísticos.",
+      "El conjunto de datos históricos utilizados para predecir el comportamiento futuro de un sistema."
+    ],
+    c: 1,
+    fb: "Un <strong>modelo</strong> es una representación simplificada de la realidad. No pretende ser idéntico al sistema real, sino capturar los elementos esenciales que permiten analizar, comprender y tomar decisiones sobre él. Puede ser físico, matemático o computacional."
+  },
+  {
+    unidad: 1,
+    q: "¿Cuál es la diferencia fundamental entre un modelo determinístico y un modelo estocástico?",
+    o: [
+      "El modelo determinístico es siempre más exacto que el estocástico.",
+      "El modelo estocástico utiliza ecuaciones lineales; el determinístico utiliza ecuaciones cuadráticas.",
+      "En un modelo determinístico, los mismos datos de entrada siempre producen el mismo resultado; en el estocástico, intervienen variables aleatorias que generan resultados con variabilidad.",
+      "El modelo determinístico requiere supercomputadoras, mientras el estocástico puede ejecutarse en cualquier PC."
+    ],
+    c: 2,
+    fb: "La clave está en la <strong>aleatoriedad</strong>: un modelo <em>determinístico</em> (ej. calcular la trayectoria de un proyectil con física clásica) produce siempre el mismo resultado dado el mismo input. Un modelo <em>estocástico</em> (ej. simular llegadas de clientes) incorpora variables aleatorias, por lo que cada réplica puede arrojar resultados distintos."
+  },
+  {
+    unidad: 1,
+    q: "¿Cuál es la diferencia entre Simulación Discreta de Eventos y Simulación Continua?",
+    o: [
+      "La simulación discreta es más rápida de programar; la continua es más precisa.",
+      "En la simulación continua, el estado del sistema cambia solo en momentos específicos; en la discreta, cambia de forma ininterrumpida con el tiempo.",
+      "En la simulación discreta, el estado del sistema cambia únicamente cuando ocurre un evento específico; en la continua, el estado evoluciona de manera ininterrumpida a lo largo del tiempo.",
+      "La simulación discreta se usa solo para sistemas físicos y la continua solo para sistemas informáticos."
+    ],
+    c: 2,
+    fb: "En la <strong>Simulación Discreta de Eventos</strong>, el reloj de simulación avanza de evento en evento (llegada de cliente, fin de servicio), y el estado permanece constante entre ellos. En la <strong>Simulación Continua</strong>, el estado cambia de forma ininterrumpida (fluidos, temperatura, señales analógicas). La mayoría de los sistemas informáticos se modelan con simulación discreta."
+  },
+  {
+    unidad: 1,
+    q: "¿Cuál es la principal ventaja de usar simulación para analizar un sistema complejo?",
+    o: [
+      "La simulación siempre produce resultados más exactos que los métodos analíticos matemáticos.",
+      "Permite experimentar con el sistema bajo distintos escenarios sin interrumpir ni arriesgar el sistema real, de forma segura y a menor costo.",
+      "Es más rápida que cualquier otro método de análisis de sistemas.",
+      "No requiere conocimiento previo del sistema ni de estadística para ser aplicada."
+    ],
+    c: 1,
+    fb: "La gran ventaja de la simulación es que permite <strong>experimentar sin riesgo</strong>: puedes probar qué pasa si duplicas el número de servidores, o si cambia la tasa de llegadas, sin afectar el sistema real. Además permite analizar sistemas demasiado complejos para tener solución analítica cerrada."
+  },
+  {
+    unidad: 1,
+    q: "En el proceso de modelación y simulación, ¿cuál debe ser el primer paso antes de construir el modelo?",
+    o: [
+      "Recopilar todos los datos estadísticos disponibles sobre el sistema.",
+      "Seleccionar el software de simulación más adecuado para el problema.",
+      "Definir claramente el problema, los objetivos del estudio y el alcance del modelo.",
+      "Ejecutar una simulación piloto con parámetros por defecto para conocer el sistema."
+    ],
+    c: 2,
+    fb: "El <strong>primer paso</strong> siempre es definir con claridad: ¿qué problema quiero resolver?, ¿qué decisiones ayudará a tomar el modelo?, ¿cuáles son los límites del sistema a simular? Un modelo mal definido produce resultados correctos para la pregunta equivocada. La recolección de datos, el software y la simulación vienen después."
+  },
+
+  // ── UNIDAD 2: Modelos de Optimización ─────────────────────────────────
+
+  {
+    unidad: 2,
+    q: "¿Cuáles son los tres componentes fundamentales que todo modelo de optimización debe tener?",
+    o: [
+      "Función de probabilidad, variables aleatorias y restricciones de tiempo.",
+      "Variables de decisión, función objetivo y restricciones.",
+      "Parámetros de entrada, algoritmo de resolución e informe de resultados.",
+      "Datos históricos, modelo predictivo y margen de error aceptable."
+    ],
+    c: 1,
+    fb: "Todo modelo de optimización tiene exactamente tres componentes: (1) <strong>Variables de decisión</strong> — las incógnitas que el modelo debe determinar; (2) <strong>Función objetivo</strong> — la expresión que se maximiza o minimiza; (3) <strong>Restricciones</strong> — las condiciones que la solución debe cumplir obligatoriamente."
+  },
+  {
+    unidad: 2,
+    q: "En Programación Lineal, ¿qué representa la Región Factible?",
+    o: [
+      "El conjunto de soluciones que maximizan la función objetivo.",
+      "La zona del plano cartesiano donde la función objetivo toma valores negativos.",
+      "El conjunto de todas las soluciones que satisfacen simultáneamente todas las restricciones del problema.",
+      "El área donde las restricciones son linealmente independientes entre sí."
+    ],
+    c: 2,
+    fb: "La <strong>Región Factible</strong> es el espacio de todas las soluciones <em>admisibles</em>: aquellas que cumplen TODAS las restricciones al mismo tiempo (incluyendo no negatividad). El óptimo de un problema de PL siempre se encuentra en uno de los vértices (puntos extremos) de esta región."
+  },
+  {
+    unidad: 2,
+    q: "Un ingeniero necesita decidir cuántos servidores físicos comprar, donde la cantidad debe ser un número entero (no se pueden comprar fracciones de servidor). ¿Qué tipo de modelo de optimización debe utilizar?",
+    o: [
+      "Programación Lineal (PL), porque las restricciones de recursos son lineales.",
+      "Programación No Lineal (PNL), porque el costo crece de forma exponencial con la cantidad.",
+      "Programación Entera (PE), porque las variables de decisión deben tomar valores enteros.",
+      "Programación Lineal Mixta (PEM), porque combina variables continuas e interas."
+    ],
+    c: 2,
+    fb: "Cuando las <strong>variables de decisión deben ser enteras</strong> (servidores físicos, personas contratadas, camiones a usar), se requiere <strong>Programación Entera (PE)</strong>. La PL permite valores fraccionarios. Si solo <em>algunas</em> variables deben ser enteras y otras pueden ser continuas, se usa Programación Entera Mixta (PEM)."
+  },
+  {
+    unidad: 2,
+    q: "¿Por qué la función scipy.optimize.linprog de Python minimiza la función objetivo en lugar de maximizar?",
+    o: [
+      "Porque maximizar es matemáticamente equivalente a minimizar el cuadrado de la función objetivo.",
+      "Porque fue diseñada únicamente para problemas de costos de infraestructura computacional.",
+      "Porque linprog solo realiza minimización; para maximizar Z se debe minimizar −Z, y el óptimo encontrado corresponde al máximo de Z original.",
+      "No es posible resolver problemas de maximización con SciPy; se necesita PuLP obligatoriamente."
+    ],
+    c: 2,
+    fb: "Por convención matemática, <strong>linprog solo minimiza</strong>. Para maximizar Z = c₁x₁ + c₂x₂, se transforma el problema a: minimizar −Z = −c₁x₁ − c₂x₂. El valor óptimo encontrado (negado) corresponde al máximo de Z original. PuLP, en cambio, permite especificar directamente si se maximiza o minimiza."
+  },
+  {
+    unidad: 2,
+    q: "Según el Teorema Fundamental de la Programación Lineal, ¿dónde siempre se puede encontrar la solución óptima (cuando existe)?",
+    o: [
+      "En el origen del sistema de coordenadas (0, 0).",
+      "En un vértice (punto extremo) de la región factible.",
+      "En el punto donde todas las restricciones del problema son iguales a cero.",
+      "En el centroide geométrico del área que forma la región factible."
+    ],
+    c: 1,
+    fb: "El <strong>Teorema Fundamental de la PL</strong> garantiza que si existe una solución óptima, entonces al menos una de ellas está en un <em>vértice</em> (punto extremo) de la región factible. Esto es lo que hace que el método gráfico funcione: basta evaluar la función objetivo en todos los vértices y elegir el mejor."
+  },
+
+  // ── UNIDAD 3: Simulación y Sistemas de Colas ──────────────────────────
+
+  {
+    unidad: 3,
+    q: "En un sistema de colas, la notación de Kendall M/M/1 indica:",
+    o: [
+      "Múltiples servidores, distribución de Markov y capacidad máxima de 1 cliente.",
+      "Un servidor, con llegadas que siguen una distribución de Poisson y tiempos de servicio con distribución exponencial.",
+      "Modelo Matemático con 1 servidor y tiempos de servicio con distribución uniforme.",
+      "Múltiples llegadas, múltiples servidores y un único proceso de salida."
+    ],
+    c: 1,
+    fb: "La notación de Kendall <strong>A/B/c</strong> describe: A = distribución de llegadas, B = distribución de servicio, c = número de servidores. <strong>M/M/1</strong>: M (Markoviana = Poisson) para llegadas, M (exponencial) para servicio, 1 servidor. Ejemplo clásico: un banco con una sola caja."
+  },
+  {
+    unidad: 3,
+    q: "Un servidor web recibe solicitudes a una tasa λ = 8 solicitudes/segundo y puede procesarlas a μ = 10 solicitudes/segundo. ¿Cuál es el factor de utilización ρ del servidor?",
+    o: [
+      "ρ = 10/8 = 1.25 — el sistema está sobrecargado y la cola crece indefinidamente.",
+      "ρ = 8 + 10 = 18 — suma de las tasas de llegada y servicio.",
+      "ρ = 8/10 = 0.8 — el servidor está ocupado el 80% del tiempo.",
+      "ρ = 10 − 8 = 2 — diferencia entre tasa de servicio y tasa de llegada."
+    ],
+    c: 2,
+    fb: "El <strong>factor de utilización</strong> se calcula como ρ = λ/μ = 8/10 = <strong>0.8</strong>. Significa que el servidor está ocupado el 80% del tiempo. Como ρ < 1, el sistema es estable. Si ρ ≥ 1 (más solicitudes llegan de las que se pueden procesar), la cola crecería indefinidamente."
+  },
+  {
+    unidad: 3,
+    q: "¿Cuál es la condición necesaria para que un sistema M/M/1 sea estable (la cola no crezca indefinidamente)?",
+    o: [
+      "La tasa de llegada debe ser igual a la tasa de servicio: λ = μ.",
+      "El factor de utilización debe ser estrictamente menor que 1: ρ = λ/μ < 1.",
+      "El número promedio de clientes en el sistema debe ser mayor que 1: L > 1.",
+      "La tasa de servicio debe ser exactamente el doble de la tasa de llegada: μ = 2λ."
+    ],
+    c: 1,
+    fb: "La condición de <strong>estabilidad</strong> del sistema M/M/1 es ρ = λ/μ < 1. Si ρ ≥ 1, la cola nunca se vacía y el tiempo de espera tiende a infinito. Cuando ρ → 1 (servidor casi al límite), las fórmulas Lq = ρ²/(1-ρ) y W = 1/(μ(1-ρ)) muestran que los tiempos de espera crecen exponencialmente."
+  },
+  {
+    unidad: 3,
+    q: "¿Por qué se utiliza la distribución de Poisson para modelar las llegadas de clientes en un sistema de colas?",
+    o: [
+      "Porque siempre produce el valor promedio exacto del número de llegadas observadas.",
+      "Porque es la única distribución que puede combinarse con servidores paralelos (M/M/c).",
+      "Porque modela adecuadamente el número de eventos independientes y aleatorios que ocurren en un intervalo de tiempo fijo, lo cual es característico de llegadas de clientes, solicitudes HTTP o paquetes de red.",
+      "Porque garantiza automáticamente que el sistema de colas sea siempre estable y no se sature."
+    ],
+    c: 2,
+    fb: "La <strong>distribución de Poisson</strong> modela el número de eventos que ocurren en un intervalo de tiempo cuando: (1) los eventos son independientes entre sí, (2) la tasa promedio es constante, (3) es imposible que dos eventos ocurran exactamente al mismo instante. Estas propiedades se ajustan bien a llegadas de clientes, solicitudes HTTP a un servidor web y paquetes a un router."
+  },
+  {
+    unidad: 3,
+    q: "En la Simulación Discreta de Eventos, ¿cuál es el papel del componente llamado 'Reloj de Simulación'?",
+    o: [
+      "Mide el tiempo de CPU consumido durante la ejecución del programa de simulación.",
+      "Sincroniza el programa con el tiempo real del reloj del sistema operativo.",
+      "Es una variable que mantiene el tiempo simulado actual y avanza únicamente cuando ocurre el siguiente evento programado en la lista de eventos.",
+      "Contador que registra cuántos eventos han sido procesados desde el inicio de la simulación."
+    ],
+    c: 2,
+    fb: "El <strong>Reloj de Simulación</strong> es una variable (no un reloj físico) que representa el tiempo dentro del mundo simulado. La simulación discreta lo hace avanzar de evento en evento: si el próximo evento está programado para el segundo 4.7, el reloj salta directamente a 4.7, saltándose los instantes intermedios donde no ocurre nada relevante. Esto la hace mucho más eficiente que simular segundo a segundo."
+  }
+
+];
+
+// ══════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════
+let current       = 0;
+let score         = 0;
+let answers       = [];
+let answered      = false;
+let studentName   = "";
+let studentCode   = "";
+let startTime     = null;
+let maxIntentos   = 3;
+let intentoActual = 0;
+let duracionMin   = 0;
+let fechaApertura = null;
+let fechaCierre   = null;
+let timerInterval = null;
+let timerTotal    = 0;
+
+// ══════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════
+function show(id) {
+  ["hero","registro","quiz-section","results","bloqueado","no-disponible","cerrado"].forEach(s => {
+    document.getElementById(s).style.display = "none";
+  });
+  const t = document.getElementById(id);
+  t.style.display = (id === "quiz-section" || id === "results") ? "block" : "flex";
+}
+
+// ══════════════════════════════════════════════════════
+//  DISPONIBILIDAD
+// ══════════════════════════════════════════════════════
+function checkAvailability() {
+  const now = new Date();
+  if (fechaApertura && now < fechaApertura) { showNotYetOpen(); return; }
+  if (fechaCierre   && now > fechaCierre)   { showClosed();     return; }
+  show("hero");
+}
+
+function showNotYetOpen() {
+  show("no-disponible");
+  document.getElementById("nd-apertura").textContent = fmtDate(fechaApertura);
+  document.getElementById("nd-cierre-info").textContent = fechaCierre
+    ? "Cierra: " + fmtDate(fechaCierre) : "";
+  (function tick() {
+    const rem = Math.max(0, fechaApertura - new Date());
+    document.getElementById("nd-countdown").textContent = rem > 0 ? fmtCountdown(rem) : "Abriendo…";
+    if (rem <= 0) { checkAvailability(); return; }
+    setTimeout(tick, 1000);
+  })();
+}
+
+function showClosed() {
+  show("cerrado");
+  document.getElementById("cl-cierre").textContent = fechaCierre ? fmtDate(fechaCierre) : "—";
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function fmtCountdown(ms) {
+  const t = Math.floor(ms/1000), h = Math.floor(t/3600), m = Math.floor((t%3600)/60), s = t%60;
+  const p = n => n.toString().padStart(2,"0");
+  return h > 0 ? `${h}:${p(m)}:${p(s)}` : `${m}:${p(s)}`;
+}
+
+// ══════════════════════════════════════════════════════
+//  CRONÓMETRO
+// ══════════════════════════════════════════════════════
+function startTimer() {
+  if (!duracionMin || duracionMin <= 0) return;
+  timerTotal = duracionMin * 60;
+  let secsLeft = timerTotal;
+  document.getElementById("timer-bar").classList.add("visible");
+
+  function tick() {
+    const min = Math.floor(secsLeft/60), sec = secsLeft%60;
+    const p = n => n.toString().padStart(2,"0");
+    const display = document.getElementById("timer-display");
+    const fill    = document.getElementById("timer-fill");
+    display.textContent = `${p(min)}:${p(sec)}`;
+    const pct = secsLeft / timerTotal;
+    fill.style.width = (pct*100)+"%";
+    if (pct <= 0.25 || secsLeft <= 120) {
+      display.className = "timer-display danger";
+      fill.className    = "timer-fill danger";
+    } else if (pct <= 0.5) {
+      display.className = "timer-display warn";
+      fill.className    = "timer-fill warn";
+    } else {
+      display.className = "timer-display";
+      fill.className    = "timer-fill";
+    }
+    if (secsLeft <= 0) { autoSubmit(); return; }
+    secsLeft--;
+    timerInterval = setTimeout(tick, 1000);
+  }
+  tick();
+}
+
+function stopTimer() {
+  if (timerInterval) { clearTimeout(timerInterval); timerInterval = null; }
+  const bar = document.getElementById("timer-bar");
+  if (bar) bar.classList.remove("visible");
+}
+
+function autoSubmit() {
+  stopTimer();
+  while (answers.length < QUESTIONS.length) {
+    const i = answers.length;
+    answers.push({ chosen: -1, correct: QUESTIONS[i].c, isCorrect: false });
+  }
+  showResults();
+}
+
+// ══════════════════════════════════════════════════════
+//  REGISTRO
+// ══════════════════════════════════════════════════════
+function goToRegistro() {
+  show("registro"); window.scrollTo(0,0);
+  setTimeout(() => document.getElementById("inp-nombre").focus(), 100);
+}
+
+async function startQuiz() {
+  const nombre = document.getElementById("inp-nombre").value.trim();
+  const err    = document.getElementById("err-nombre");
+  if (!nombre) { err.classList.add("show"); return; }
+  err.classList.remove("show");
+  studentName = nombre;
+  studentCode = document.getElementById("inp-codigo").value.trim();
+
+  if (db && maxIntentos > 0) {
+    try {
+      const snap = await db.collection(COLLECTION)
+        .where("nombre","==",studentName).where("codigo","==",studentCode).get();
+      const usados = snap.size;
+      if (usados >= maxIntentos) {
+        const mejor = snap.docs.reduce((mx,d) => Math.max(mx, d.data().puntaje ?? 0), 0);
+        document.getElementById("block-num").textContent = `${usados}/${maxIntentos}`;
+        document.getElementById("block-detail").innerHTML =
+          `Has completado el quiz <strong>${usados}</strong> veces (límite: ${maxIntentos}).<br>` +
+          `Tu mejor puntaje: <strong>${mejor}/15</strong>`;
+        show("bloqueado"); window.scrollTo(0,0); return;
+      }
+      intentoActual = usados + 1;
+    } catch(e) { intentoActual = 1; }
+  } else { intentoActual = 1; }
+
+  startTime = Date.now();
+  document.getElementById("student-badge").textContent = "▶ " + studentName + (studentCode ? "  ·  " + studentCode : "");
+  const ab = document.getElementById("attempt-badge");
+  if (maxIntentos > 0) { ab.textContent = `Intento ${intentoActual} de ${maxIntentos}`; ab.style.display = "inline-block"; }
+
+  current = 0; score = 0; answers = []; answered = false;
+  show("quiz-section"); window.scrollTo(0,0);
+  startTimer(); renderQuestion();
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER PREGUNTA
+// ══════════════════════════════════════════════════════
+const UNIT_NAMES = {
+  1: "Unidad 1 · Fundamentos de Modelación y Simulación",
+  2: "Unidad 2 · Modelos de Optimización",
+  3: "Unidad 3 · Simulación y Sistemas de Colas"
+};
+
+function renderQuestion() {
+  answered = false;
+  const q   = QUESTIONS[current];
+  const pct = (current / QUESTIONS.length) * 100;
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-text").innerHTML = `Pregunta <span>${current+1}</span> de ${QUESTIONS.length}`;
+  document.getElementById("score-live").textContent   = `Aciertos: ${score}`;
+
+  document.getElementById("q-container").innerHTML = `
+    <div class="q-card">
+      <div class="unit-tag u${q.unidad}">${UNIT_NAMES[q.unidad]}</div>
+      <div class="q-number">Pregunta ${current+1} / ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options" id="options">
+        ${q.o.map((opt,i) => `
+          <button class="opt" id="opt-${i}" onclick="selectAnswer(${i})">
+            <span class="letter">${LETTERS[i]}</span>
+            <span>${opt}</span>
+          </button>`).join("")}
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div style="text-align:right">
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">
+          ${current < QUESTIONS.length-1 ? "Siguiente →" : "Ver resultados →"}
+        </button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[current];
+  const isCorrect = idx === q.c;
+  if (isCorrect) score++;
+  answers.push({ chosen: idx, correct: q.c, isCorrect });
+
+  QUESTIONS[current].o.forEach((_,i) => {
+    const el = document.getElementById("opt-"+i);
+    el.classList.add("locked");
+    if (i === q.c)               el.classList.add("correct");
+    if (i === idx && !isCorrect) el.classList.add("wrong");
+  });
+
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback show " + (isCorrect ? "ok" : "fail");
+  fb.innerHTML = (isCorrect ? "✔ Correcto. " : "✘ Incorrecto. ") + q.fb;
+  document.getElementById("btn-next").classList.add("show");
+  document.getElementById("score-live").textContent = `Aciertos: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= QUESTIONS.length) showResults();
+  else { renderQuestion(); window.scrollTo(0,0); }
+}
+
+// ══════════════════════════════════════════════════════
+//  GUARDAR EN FIRESTORE
+// ══════════════════════════════════════════════════════
+async function saveToFirestore(payload) {
+  const statusEl = document.getElementById("save-status");
+  if (!db) {
+    statusEl.className = "save-status error";
+    statusEl.textContent = "⚠ Firebase no configurado. El resultado no fue guardado.";
+    return;
+  }
+  statusEl.className = "save-status saving";
+  statusEl.textContent = "↑ Guardando resultado…";
+  try {
+    await db.collection(COLLECTION).add(payload);
+    statusEl.className = "save-status saved";
+    statusEl.textContent = "✔ Resultado guardado correctamente.";
+  } catch(e) {
+    statusEl.className = "save-status error";
+    statusEl.textContent = "⚠ No se pudo guardar. Verifica tu conexión.";
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  RESULTADOS
+// ══════════════════════════════════════════════════════
+function showResults() {
+  stopTimer();
+  show("results"); window.scrollTo(0,0);
+
+  const pct    = score / QUESTIONS.length;
+  const durSeg = Math.round((Date.now() - startTime) / 1000);
+
+  document.getElementById("big-score").textContent = `${score}/15`;
+  document.getElementById("score-pct").textContent = `${Math.round(pct*100)}% de aciertos`;
+  document.getElementById("score-student").textContent = studentName + (studentCode ? " · " + studentCode : "");
+
+  const hero = document.getElementById("score-hero");
+  const msg  = document.getElementById("score-msg");
+  if (pct === 1) {
+    hero.className = "score-hero perfect";
+    msg.textContent = "¡Perfecto! Dominas los fundamentos de las tres unidades.";
+  } else if (pct >= 0.8) {
+    hero.className = "score-hero good";
+    msg.textContent = "Muy bien. Sólida comprensión de los temas. Revisa los ítems fallidos.";
+  } else if (pct >= 0.6) {
+    hero.className = "score-hero regular";
+    msg.textContent = "Resultado aceptable. Refuerza los conceptos de las unidades con errores.";
+  } else {
+    hero.className = "score-hero low";
+    msg.textContent = "Te recomendamos repasar el material de las tres unidades antes de continuar.";
+  }
+
+  saveToFirestore({
+    nombre:       studentName,
+    codigo:       studentCode,
+    intento:      intentoActual,
+    puntaje:      score,
+    total:        QUESTIONS.length,
+    porcentaje:   Math.round(pct*100),
+    duracion_seg: durSeg,
+    fecha: db ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
+    respuestas: answers.map((a,i) => ({
+      pregunta: i+1, unidad: QUESTIONS[i].unidad,
+      elegida:  a.chosen === -1 ? "—" : LETTERS[a.chosen],
+      correcta: LETTERS[a.correct],
+      correcto: a.isCorrect
+    }))
+  });
+
+  // Revisión agrupada por unidad
+  let html = "";
+  let lastU = 0;
+  QUESTIONS.forEach((q,i) => {
+    const a = answers[i];
+    if (q.unidad !== lastU) {
+      html += `<div class="unit-separator u${q.unidad}">${UNIT_NAMES[q.unidad]}</div>`;
+      lastU = q.unidad;
+    }
+    html += `
+      <div class="review-item ${a.isCorrect ? "correct-item" : "wrong-item"}">
+        <div class="q-number" style="margin-bottom:4px">Pregunta ${i+1}</div>
+        <div class="review-q">${q.q}</div>
+        <div class="review-meta">
+          ${a.chosen === -1
+            ? `<span class="tag-bad">— No respondida (tiempo agotado)</span>`
+            : a.isCorrect
+            ? `<span class="tag-ok">✔ Correcto</span>`
+            : `<span class="tag-bad">✘ Respondiste: ${LETTERS[a.chosen]}</span>`}
+          ${!a.isCorrect
+            ? `<span class="tag-ans">✔ Correcta: ${LETTERS[a.correct]}. ${q.o[a.correct]}</span>`
+            : ""}
+        </div>
+      </div>`;
+  });
+  document.getElementById("review-list").innerHTML = html;
+}
+
+function restartQuiz() {
+  stopTimer();
+  show("hero"); window.scrollTo(0,0);
+  document.getElementById("inp-nombre").value = "";
+  document.getElementById("inp-codigo").value = "";
+}
+</script>
+</body>
+</html>
