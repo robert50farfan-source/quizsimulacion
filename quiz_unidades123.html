@@ -207,9 +207,13 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,3vw,36px);l
   font-size:clamp(13px,1.2vw,15px);line-height:1.6;display:none;
 }
 .feedback.show{display:block}
-.feedback.ok{background:#d6fff9;border:3px solid var(--teal);color:#0a6b60}
-.feedback.fail{background:#fff0ed;border:3px solid var(--coral);color:#9c2a14}
+.feedback.ok     {background:#d6fff9;border:3px solid var(--teal);color:#0a6b60}
+.feedback.fail   {background:#fff0ed;border:3px solid var(--coral);color:#9c2a14}
+.feedback.neutral{background:var(--paper2);border:3px solid #bbb;color:#555}
 .feedback strong{color:var(--ink)}
+
+.opt.selected{border-color:var(--violet)!important;background:#f0ecff!important;box-shadow:3px 3px 0 var(--violet)!important}
+.opt.selected .letter{border-color:var(--violet);color:var(--violet)}
 
 /* BOTÓN SIGUIENTE */
 .btn-next{
@@ -493,10 +497,11 @@ window.addEventListener("DOMContentLoaded", async () => {
       const snap = await db.collection("config").doc(CONFIG_DOC).get();
       if (snap.exists) {
         const d = snap.data();
-        if (d.max_intentos !== undefined) maxIntentos  = d.max_intentos;
-        if (d.duracion_min !== undefined) duracionMin  = d.duracion_min;
-        if (d.fecha_apertura?.toDate)    fechaApertura = d.fecha_apertura.toDate();
-        if (d.fecha_cierre?.toDate)      fechaCierre   = d.fecha_cierre.toDate();
+        if (d.max_intentos     !== undefined) maxIntentos    = d.max_intentos;
+        if (d.duracion_min     !== undefined) duracionMin    = d.duracion_min;
+        if (d.mostrar_feedback !== undefined) mostrarFeedback = d.mostrar_feedback;
+        if (d.fecha_apertura?.toDate)         fechaApertura  = d.fecha_apertura.toDate();
+        if (d.fecha_cierre?.toDate)           fechaCierre    = d.fecha_cierre.toDate();
       }
     } catch(e) {}
   }
@@ -704,20 +709,21 @@ const QUESTIONS = [
 // ══════════════════════════════════════════════════════
 //  ESTADO
 // ══════════════════════════════════════════════════════
-let current       = 0;
-let score         = 0;
-let answers       = [];
-let answered      = false;
-let studentName   = "";
-let studentCode   = "";
-let startTime     = null;
-let maxIntentos   = 3;
-let intentoActual = 0;
-let duracionMin   = 0;
-let fechaApertura = null;
-let fechaCierre   = null;
-let timerInterval = null;
-let timerTotal    = 0;
+let current        = 0;
+let score          = 0;
+let answers        = [];
+let answered       = false;
+let studentName    = "";
+let studentCode    = "";
+let startTime      = null;
+let maxIntentos    = 3;
+let intentoActual  = 0;
+let duracionMin    = 0;
+let fechaApertura  = null;
+let fechaCierre    = null;
+let timerInterval  = null;
+let timerTotal     = 0;
+let mostrarFeedback = "inmediata"; // "inmediata" | "finalizar"
 
 // ══════════════════════════════════════════════════════
 //  NAVEGACIÓN
@@ -909,18 +915,31 @@ function selectAnswer(idx) {
   if (isCorrect) score++;
   answers.push({ chosen: idx, correct: q.c, isCorrect });
 
-  QUESTIONS[current].o.forEach((_,i) => {
-    const el = document.getElementById("opt-"+i);
-    el.classList.add("locked");
-    if (i === q.c)               el.classList.add("correct");
-    if (i === idx && !isCorrect) el.classList.add("wrong");
-  });
-
-  const fb = document.getElementById("feedback");
-  fb.className = "feedback show " + (isCorrect ? "ok" : "fail");
-  fb.innerHTML = (isCorrect ? "✔ Correcto. " : "✘ Incorrecto. ") + q.fb;
+  if (mostrarFeedback === "inmediata") {
+    // Muestra verde/rojo y explicación inmediatamente
+    QUESTIONS[current].o.forEach((_,i) => {
+      const el = document.getElementById("opt-"+i);
+      el.classList.add("locked");
+      if (i === q.c)               el.classList.add("correct");
+      if (i === idx && !isCorrect) el.classList.add("wrong");
+    });
+    const fb = document.getElementById("feedback");
+    fb.className = "feedback show " + (isCorrect ? "ok" : "fail");
+    fb.innerHTML = (isCorrect ? "✔ Correcto. " : "✘ Incorrecto. ") + q.fb;
+    document.getElementById("score-live").textContent = `Aciertos: ${score}`;
+  } else {
+    // Solo marca la opción elegida, sin revelar si es correcta o no
+    QUESTIONS[current].o.forEach((_,i) => {
+      const el = document.getElementById("opt-"+i);
+      el.classList.add("locked");
+      if (i === idx) el.classList.add("selected");
+    });
+    const fb = document.getElementById("feedback");
+    fb.className = "feedback show neutral";
+    fb.textContent = "Respuesta registrada.";
+    // No actualiza el contador de aciertos para no dar pistas
+  }
   document.getElementById("btn-next").classList.add("show");
-  document.getElementById("score-live").textContent = `Aciertos: ${score}`;
 }
 
 function nextQuestion() {

@@ -240,6 +240,16 @@ tbody td{padding:13px 16px;vertical-align:middle}
     </div>
     <div class="config-row">
       <div class="config-item">
+        <span class="config-item-label">Retroalimentación al responder</span>
+        <div class="config-controls" style="gap:8px;flex-wrap:wrap">
+          <button class="btn-sm active" id="fb-btn-inmediata" onclick="updateFeedbackConfig('inmediata')">✔ Inmediata</button>
+          <button class="btn-sm"        id="fb-btn-finalizar" onclick="updateFeedbackConfig('finalizar')">Al finalizar</button>
+        </div>
+        <span class="config-hint" id="fb-hint">El estudiante ve si acertó después de cada respuesta</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-item">
         <label class="config-item-label" for="cfg-apertura">Apertura (fecha y hora)</label>
         <input class="dt-input" id="cfg-apertura" type="datetime-local"
           onchange="updateConfigDate('fecha_apertura', this.value)">
@@ -356,7 +366,7 @@ const UNIT_NAMES  = {
 
 let allData = [], filtered = [], sortCol = "fecha", sortDir = "desc",
     filterMode = "all", currentPage = 1, PAGE_SIZE = 20,
-    maxIntentosConfig = 3, duracionConfig = 0;
+    maxIntentosConfig = 3, duracionConfig = 0, feedbackConfig = "inmediata";
 
 // AUTH
 function doLogin() {
@@ -409,11 +419,29 @@ async function loadConfig() {
       maxIntentosConfig = d.max_intentos ?? 3; duracionConfig = d.duracion_min ?? 0;
       document.getElementById("cfg-max").textContent = maxIntentosConfig;
       document.getElementById("cfg-dur").textContent = duracionConfig;
+      if (d.mostrar_feedback !== undefined) feedbackConfig = d.mostrar_feedback;
       if (d.fecha_apertura?.toDate) document.getElementById("cfg-apertura").value = toDatetimeLocal(d.fecha_apertura.toDate());
       if (d.fecha_cierre?.toDate)   document.getElementById("cfg-cierre").value   = toDatetimeLocal(d.fecha_cierre.toDate());
     }
   } catch(e) {}
+  updateFeedbackBtns();
   updateStatusBadge();
+}
+
+async function updateFeedbackConfig(value) {
+  feedbackConfig = value;
+  updateFeedbackBtns();
+  await saveConfigField({ mostrar_feedback: value });
+}
+function updateFeedbackBtns() {
+  ["inmediata","finalizar"].forEach(v => {
+    const btn = document.getElementById("fb-btn-"+v);
+    if (btn) btn.classList.toggle("active", feedbackConfig === v);
+  });
+  const hint = document.getElementById("fb-hint");
+  if (hint) hint.textContent = feedbackConfig === "inmediata"
+    ? "El estudiante ve si acertó después de cada respuesta"
+    : "El estudiante solo ve sus resultados al finalizar el quiz";
 }
 async function saveConfigField(fields) {
   const s = document.getElementById("cfg-save-status");
