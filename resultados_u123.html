@@ -441,7 +441,7 @@ async function clearDates() {
 async function resetIntentos(nombre, codigo) {
   if (!confirm(`¿Eliminar todos los intentos de "${nombre}"?\nEsta acción no se puede deshacer.`)) return;
   try {
-    const snap = await db.collection(COLLECTION).where("nombre","==",nombre).where("codigo","==",codigo).get();
+    const snap = await db.collection(COLLECTION).where("codigo","==",codigo).get();
     if (snap.empty) { alert("No se encontraron intentos."); return; }
     const batch = db.batch();
     snap.docs.forEach(doc => batch.delete(doc.ref));

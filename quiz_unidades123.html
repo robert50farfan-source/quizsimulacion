@@ -839,7 +839,7 @@ async function startQuiz() {
   if (db && maxIntentos > 0) {
     try {
       const snap = await db.collection(COLLECTION)
-        .where("nombre","==",studentName).where("codigo","==",studentCode).get();
+        .where("codigo","==",studentCode).get();
       const usados = snap.size;
       if (usados >= maxIntentos) {
         const mejor = snap.docs.reduce((mx,d) => Math.max(mx, d.data().puntaje ?? 0), 0);
