@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz · Unidades 1, 2 y 3 · TEL410</title>
+<title>Quiz · Mesa 2 · TEL410</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -298,10 +298,10 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,3vw,36px);l
 
 <!-- ══ HERO ══ -->
 <section id="hero">
-  <div class="hero-num">TEL</div>
+  <div class="hero-num">M2</div>
   <div style="position:relative;z-index:1;max-width:820px">
-    <div class="eyebrow">TEL410 · Evaluación · Unidades 1, 2 y 3 · 2026</div>
-    <h1 style="color:#fff">Evaluación<br>Gestión de<br><span style="color:#4fc3f7">Redes</span></h1>
+    <div class="eyebrow">TEL410 · Mesa 2 · Unidades 1, 2 y 3 · 2026</div>
+    <h1 style="color:#fff">Mesa 2<br>Gestión de<br><span style="color:#4fc3f7">Redes</span></h1>
 
     <div class="course-card">
       <div class="cc-block">
@@ -325,7 +325,7 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,3vw,36px);l
     <div class="unit-badges">
       <span class="ubadge u1">Unidad 1 · Fundamentos de Gestión de Redes</span>
       <span class="ubadge u2">Unidad 2 · Áreas Funcionales (FCAPS)</span>
-      <span class="ubadge u3">Unidad 3 · Modelos de Gestión (SNMP/TMN)</span>
+      <span class="ubadge u3">Unidad 3 · Modelos de Gestión (SNMP/TMN/NETCONF)</span>
     </div>
 
     <p style="margin-top:20px;font-size:clamp(14px,1.3vw,17px);line-height:1.7;max-width:55ch;color:rgba(255,255,255,.65)">
@@ -339,10 +339,10 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,3vw,36px);l
 <section id="registro">
   <div class="hero-num" style="color:rgba(255,255,255,.04)">ID</div>
   <div class="inner">
-    <div class="eyebrow" style="color:#4fc3f7">Paso 1 / 2 · Identificación</div>
+    <div class="eyebrow" style="color:#4fc3f7">Paso 1 / 2 · Identificación · Mesa 2</div>
     <div class="course-strip">
       <span class="cs-pill">TEL410</span>
-      <span class="cs-pill">Unidades 1-2-3</span>
+      <span class="cs-pill">Mesa 2</span>
       <span class="cs-pill">FIRNT</span>
       <span class="cs-pill">Ing. Robert Farfán</span>
     </div>
@@ -389,9 +389,9 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,3vw,36px);l
 
 <!-- ══ RESULTADOS ══ -->
 <section id="results">
-  <div class="eyebrow">Resultado final · TEL410 · Unidades 1, 2 y 3</div>
+  <div class="eyebrow">Resultado final · TEL410 · Mesa 2</div>
   <div class="course-strip">
-    <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">TEL410</span>
+    <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">TEL410 · Mesa 2</span>
     <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">FIRNT</span>
     <span class="cs-pill" style="border-color:rgba(0,0,0,.2);color:#666">Ing. Robert Farfán</span>
   </div>
@@ -475,8 +475,8 @@ const FIREBASE_CONFIG = {
   appId:             "1:226974496351:web:a93c597cf3d398a1d24dea"
 };
 
-const COLLECTION = "evaluaciones_tel410";
-const CONFIG_DOC = "quiz_tel410";
+const COLLECTION = "evaluaciones_tel410_m2";
+const CONFIG_DOC = "quiz_tel410_m2";
 
 let db = null;
 try {
@@ -512,189 +512,189 @@ const QUESTIONS = [
 
   {
     unidad: 1,
-    q: "¿Qué es la gestión de redes en el contexto de la administración de infraestructuras tecnológicas?",
+    q: "¿Cuáles son los cuatro propósitos fundamentales de los modelos de gestión de redes según los estándares internacionales?",
     o: [
-      "El proceso de instalar físicamente cables y equipos en una red corporativa.",
-      "El conjunto de actividades, métodos y herramientas que permiten planificar, supervisar, controlar y optimizar una infraestructura de red para asegurar su funcionamiento óptimo.",
-      "Un protocolo de comunicación que permite a los dispositivos intercambiar datos sin necesidad de un administrador.",
-      "La configuración inicial de dispositivos de red que se realiza una única vez durante la instalación."
+      "Velocidad, capacidad, redundancia y monitoreo automático de infraestructuras.",
+      "Estandarización, escalabilidad, interoperabilidad y automatización de la gestión.",
+      "Seguridad, configuración, rendimiento y disponibilidad continua de la red.",
+      "Detección, diagnóstico, resolución y prevención de fallos en tiempo real."
     ],
     c: 1,
-    fb: "La <strong>gestión de redes</strong> comprende todas las actividades, métodos, procedimientos y herramientas necesarios para mantener, configurar, monitorear y optimizar una red. Su objetivo es garantizar disponibilidad, rendimiento y seguridad de la infraestructura tecnológica de una organización."
+    fb: "Los modelos de gestión tienen cuatro propósitos fundamentales: <strong>Estandarización</strong> (procedimientos uniformes independientemente del fabricante), <strong>Escalabilidad</strong> (crecimiento ordenado de la infraestructura), <strong>Interoperabilidad</strong> (comunicación entre dispositivos heterogéneos) y <strong>Automatización</strong> (reducción de intervención manual mediante procesos sistemáticos)."
   },
   {
     unidad: 1,
-    q: "¿Cuál es el componente 'Gestor' (Manager) en la arquitectura básica de gestión de redes?",
+    q: "¿Qué es un OID (Object Identifier) en el contexto de la MIB de gestión de redes?",
     o: [
-      "El dispositivo físico como router o switch que realiza el enrutamiento de paquetes.",
-      "El software instalado en cada dispositivo que responde a solicitudes de información del gestor central.",
-      "La entidad central que controla, supervisa y coordina la gestión de todos los dispositivos de la red.",
-      "El protocolo de comunicación utilizado para transportar datos de gestión entre dispositivos."
+      "El nombre de usuario del administrador que tiene acceso a los dispositivos gestionados.",
+      "Un algoritmo de cifrado usado por SNMPv3 para proteger las comunicaciones de gestión.",
+      "Una cadena numérica jerárquica única que identifica de forma unívoca cada objeto administrable dentro de la MIB de un dispositivo de red.",
+      "El puerto UDP por el cual el gestor envía solicitudes a los agentes de los dispositivos."
     ],
     c: 2,
-    fb: "En la arquitectura de gestión de redes, el <strong>Gestor (Manager)</strong> es la entidad centralizada que envía solicitudes, recopila datos y toma decisiones de gestión. Los <em>Agentes</em> son los procesos que residen en los dispositivos y responden al Gestor. La MIB es la base de datos de información gestionable."
+    fb: "Un <strong>OID</strong> (Object Identifier) es una cadena numérica jerárquica (ej: 1.3.6.1.2.1.1.1.0) que identifica de forma única cada objeto en la MIB. La estructura es en árbol: cada número representa un nodo. Por ejemplo, 1.3.6.1.2.1 es el prefijo mib-2 con objetos estándar como interfaces (1.3.6.1.2.1.2) y TCP (1.3.6.1.2.1.6)."
   },
   {
     unidad: 1,
-    q: "¿Qué es la MIB (Management Information Base) en el contexto de la gestión de redes?",
+    q: "¿Cuál de los siguientes NO es un componente funcional básico de un modelo de gestión de redes?",
     o: [
-      "Un programa antivirus centralizado que protege todos los dispositivos de la red.",
-      "El protocolo de transferencia de archivos utilizado entre el gestor y los agentes de red.",
-      "Un dispositivo de hardware especializado que almacena las copias de seguridad de las configuraciones.",
-      "Una base de datos jerárquica y estandarizada que organiza toda la información sobre dispositivos y recursos de red, identificando cada objeto con un OID único."
-    ],
-    c: 3,
-    fb: "La <strong>MIB</strong> (Management Information Base) es una base de datos conceptual con estructura jerárquica que define todos los objetos administrables de un dispositivo de red. Cada objeto tiene un identificador único llamado OID (Object Identifier). El gestor consulta la MIB a través del agente para obtener datos como el estado de interfaces, uso de CPU y memoria."
-  },
-  {
-    unidad: 1,
-    q: "¿Por qué es necesaria la gestión activa de redes en una organización moderna?",
-    o: [
-      "Porque es un requisito legal obligatorio en todos los países para cualquier empresa con equipos conectados.",
-      "Porque permite eliminar completamente las fallas en la red, garantizando disponibilidad del 100% siempre.",
-      "Porque las infraestructuras de red son complejas y cambiantes, y sin gestión aumentan los tiempos de inactividad, los riesgos de seguridad y los costos operativos.",
-      "Únicamente porque los fabricantes de equipos exigen que sus dispositivos sean gestionados para mantener la garantía vigente."
+      "Gestor (Manager): entidad central que controla y supervisa la red.",
+      "Agentes (Agents): procesos en los dispositivos que responden al gestor.",
+      "Firewall perimetral: dispositivo que filtra el tráfico entre la red interna y externa.",
+      "Protocolo de comunicación: medio para intercambiar información entre gestor y agentes."
     ],
     c: 2,
-    fb: "La gestión de redes es necesaria porque las infraestructuras modernas son <strong>complejas y dinámicas</strong> (cientos de dispositivos, múltiples protocolos, cambios frecuentes). Sin gestión activa, los problemas se detectan tarde, la seguridad se debilita y los costos operativos aumentan. La gestión también proporciona los datos necesarios para la planificación de capacidad futura."
+    fb: "Los cuatro componentes funcionales básicos de todo modelo de gestión son: Gestor (Manager), Agentes (Agents), Información Administrada (MIB) y Protocolo de Comunicación. El <strong>Firewall perimetral</strong> es un dispositivo de seguridad que puede <em>ser gestionado</em>, pero no es un componente del modelo de gestión en sí mismo."
   },
   {
     unidad: 1,
-    q: "En la arquitectura de gestión de redes, los Agentes (Agents) cumplen la función de:",
+    q: "¿Qué característica define a la 'Información Administrada' (MIB) en la arquitectura de gestión de redes?",
     o: [
-      "Actuar como administradores de la red, tomando decisiones autónomas sobre el enrutamiento del tráfico.",
-      "Ser procesos que residen en los dispositivos de red, recopilan información local y responden a las solicitudes del Gestor.",
-      "Establecer las políticas de seguridad globales que deben aplicar todos los dispositivos de la red.",
-      "Reemplazar al administrador humano en todas las tareas de configuración y mantenimiento de la red."
+      "Es el conjunto de reglas que determina cómo el gestor puede acceder y modificar la configuración de los dispositivos.",
+      "Es un repositorio estructurado que define qué aspectos de los dispositivos pueden ser monitoreados o controlados, organizados jerárquicamente con OIDs únicos.",
+      "Es el protocolo de autenticación que verifica la identidad del administrador antes de permitir acceso a los dispositivos.",
+      "Es la base de datos de incidentes y fallos resueltos que sirve como referencia para futuros problemas."
     ],
     c: 1,
-    fb: "Los <strong>Agentes</strong> son procesos de software que se ejecutan dentro de los dispositivos de red (routers, switches, servidores). Recopilan datos locales (estado de interfaces, tráfico, errores) y responden a las solicitudes del Gestor. En SNMP, los agentes escuchan en el puerto UDP 161 y pueden enviar notificaciones espontáneas (TRAP) al gestor por el puerto 162."
+    fb: "La <strong>MIB</strong> es un repositorio estructurado jerárquicamente que define todos los objetos que pueden ser monitoreados o controlados en un dispositivo. No almacena los valores actuales, sino que define la estructura; los valores reales residen en los dispositivos y son consultados a través del agente mediante el protocolo de gestión (SNMP, NETCONF). Cada objeto tiene un OID único."
+  },
+  {
+    unidad: 1,
+    q: "¿Qué diferencia fundamental existe entre el monitoreo proactivo y el reporte reactivo en la gestión de redes?",
+    o: [
+      "El monitoreo proactivo solo puede ser realizado por sistemas automáticos; el reactivo siempre requiere intervención humana.",
+      "El monitoreo proactivo detecta anomalías automáticamente antes de que afecten a los usuarios; el reactivo ocurre cuando los usuarios ya reportaron el problema al helpdesk.",
+      "El monitoreo proactivo es exclusivo de redes de gran escala; el reactivo es adecuado para redes pequeñas.",
+      "No existe diferencia real: ambos producen los mismos resultados con la misma eficiencia operativa."
+    ],
+    c: 1,
+    fb: "El <strong>monitoreo proactivo</strong> usa sistemas automáticos (pings, SNMP traps, alertas de umbral, logs) que detectan anomalías antes de que los usuarios perciban el problema. El <strong>reporte reactivo</strong> ocurre cuando los usuarios ya experimentaron el fallo y lo notifican al helpdesk. El enfoque proactivo minimiza el impacto y reduce el MTTR, mientras el reactivo implica que el problema ya está afectando el servicio."
   },
 
   // ── UNIDAD 2: Áreas Funcionales de la Gestión de Redes (FCAPS) ─────────
 
   {
     unidad: 2,
-    q: "¿Cuál de las siguientes opciones describe correctamente el modelo FCAPS de gestión de redes?",
+    q: "En la Gestión de Configuración, ¿qué es una CMDB (Configuration Management Database)?",
     o: [
-      "Un protocolo de red diseñado por Cisco para gestionar exclusivamente equipos de su propia marca.",
-      "Un marco de referencia internacional (ISO/IEC 10164) que define cinco áreas funcionales: Fallos, Configuración, Contabilidad, Rendimiento y Seguridad.",
-      "Un estándar de cifrado para proteger las comunicaciones entre el Gestor y los Agentes de una red.",
-      "Un tipo de base de datos jerárquica que almacena la información de todos los dispositivos gestionados."
+      "Un protocolo de comunicación para sincronizar configuraciones entre dispositivos de red de distintos fabricantes.",
+      "Una base de datos centralizada que almacena todos los elementos de configuración (CIs) de la infraestructura: hardware, software, firmware y documentación.",
+      "Un sistema de detección de intrusiones que registra los cambios no autorizados en la configuración de los dispositivos.",
+      "Una herramienta de monitoreo que compara el estado actual de la red con la configuración de fábrica de cada dispositivo."
     ],
     c: 1,
-    fb: "FCAPS (Fault, Configuration, Accounting, Performance, Security) es el modelo de gestión definido por el estándar <strong>ISO/IEC 10164</strong>. Establece cinco áreas funcionales que deben estar presentes en cualquier sistema de gestión completo. Es reconocido globalmente y forma la base del estándar FCAPS implementado en la mayoría de plataformas de gestión empresarial."
+    fb: "La <strong>CMDB</strong> (Configuration Management Database) es el corazón de la Gestión de Configuración. Almacena todos los elementos de configuración (CIs): hardware (routers, switches, firewalls), software (IOS, Windows Server), firmware (BIOS, ROM) y documentación (topologías, manuales). Herramientas como ServiceNow y Remedy BMC implementan CMDB. Su mantenimiento actualizado es fundamental para una gestión eficaz."
   },
   {
     unidad: 2,
-    q: "Un administrador detecta que un switch tiene la VLAN 20 mal configurada, causando que un grupo de usuarios no tenga acceso a Internet. ¿Qué área funcional de gestión es la responsable de corregir y documentar este cambio de parámetros?",
+    q: "Un administrador recibe una alerta de que el CPU de un router crítico está al 95% de utilización. ¿A qué área funcional corresponde esta situación?",
     o: [
-      "Gestión de Rendimiento, porque el problema afecta la velocidad de conexión de los usuarios.",
-      "Gestión de Seguridad, porque el acceso bloqueado puede indicar una intrusión en la red.",
-      "Gestión de Configuración, porque involucra registrar, controlar y aplicar cambios en los parámetros de los dispositivos.",
-      "Gestión de Fallos, porque los usuarios reportaron que su servicio está interrumpido."
-    ],
-    c: 2,
-    fb: "La <strong>Gestión de Configuración</strong> es responsable de inventariar, documentar, controlar y aplicar los cambios en los parámetros de los dispositivos. Corregir una VLAN mal configurada es una tarea de configuración. La Gestión de Fallos detecta e identifica el problema (que el servicio está caído), pero la corrección mediante cambio de parámetros pertenece al área de Configuración."
-  },
-  {
-    unidad: 2,
-    q: "¿Qué representan los KPIs MTBF y MTTR en el contexto de la Gestión de Fallos?",
-    o: [
-      "Protocolos de comunicación utilizados para reportar fallos entre agentes y el gestor central.",
-      "MTBF mide el tiempo promedio entre fallos consecutivos, y MTTR mide el tiempo promedio que se tarda en reparar un fallo.",
-      "Herramientas de software para detectar intrusiones en la red y bloquear accesos no autorizados.",
-      "Dos versiones del protocolo SNMP: la básica y la versión con encriptación."
+      "Gestión de Seguridad: el alto uso de CPU indica un posible ataque DDoS; se debe activar el firewall inmediatamente.",
+      "Gestión de Rendimiento: se detectó degradación. Se debe analizar los procesos que consumen CPU y optimizar o redistribuir la carga.",
+      "Gestión de Configuración: se debe reconfigurar el router para limitar el procesamiento de paquetes al 80%.",
+      "Gestión de Administración: se debe crear una política que prohíba el uso de más del 80% del CPU en routers."
     ],
     c: 1,
-    fb: "<strong>MTBF</strong> (Mean Time Between Failures) mide la fiabilidad: cuánto tiempo pasa en promedio entre un fallo y el siguiente. A mayor MTBF, más confiable es la red. <strong>MTTR</strong> (Mean Time To Repair) mide la eficiencia de resolución: cuánto se tarda en restaurar el servicio. Un buen departamento IT busca maximizar MTBF (fallos poco frecuentes) y minimizar MTTR (resolución rápida)."
+    fb: "Esta situación corresponde a la <strong>Gestión de Rendimiento</strong>, que monitorea métricas como CPU, memoria, ancho de banda y latencia. Un CPU al 95% indica degradación del servicio. La acción es analizar con herramientas como Nagios o Zabbix qué procesos consumen los recursos, y optimizar (redistribuir rutas, ajustar QoS, balancear carga). Si se detecta tráfico malicioso como causa, también interviene el área de Seguridad."
   },
   {
     unidad: 2,
-    q: "La Tríada CIA en la Gestión de Seguridad de redes hace referencia a:",
+    q: "¿Cuál es el ciclo de vida correcto de un fallo según el proceso de Gestión de Fallos?",
     o: [
-      "Los tres protocolos principales de seguridad: Certificados, IDS y Autenticación.",
-      "Las tres agencias de inteligencia que regulan la seguridad de redes a nivel internacional.",
-      "Los tres pilares fundamentales: Confidencialidad (solo autorizados acceden), Integridad (datos no alterados) y Disponibilidad (acceso cuando se necesita).",
-      "Las tres capas del modelo OSI involucradas en la seguridad: Capa de Red, Transporte y Aplicación."
+      "Análisis → Reporte → Detección → Resolución → Cierre → Análisis Post-Mortem",
+      "Detección → Reporte → Análisis → Resolución → Cierre → Análisis Post-Mortem",
+      "Reporte → Detección → Resolución → Análisis → Análisis Post-Mortem → Cierre",
+      "Detección → Resolución → Análisis → Reporte → Cierre → Análisis Post-Mortem"
     ],
-    c: 2,
-    fb: "La <strong>Tríada CIA</strong> (Confidentiality, Integrity, Availability) es el marco fundamental de la seguridad: <em>Confidencialidad</em> = solo personas autorizadas acceden a la información (mecanismo: cifrado AES-256, SSL/TLS); <em>Integridad</em> = los datos no se modifican sin autorización (mecanismo: checksums, firmas digitales); <em>Disponibilidad</em> = el sistema está accesible cuando se necesita (mecanismo: redundancia, protección DDoS)."
+    c: 1,
+    fb: "El ciclo de vida de un fallo sigue el orden: <strong>DETECCIÓN</strong> (proactiva o reactiva) → <strong>REPORTE Y CLASIFICACIÓN</strong> (ticket, severidad: Crítica/Alta/Media/Baja) → <strong>ANÁLISIS Y DIAGNÓSTICO</strong> (causa raíz) → <strong>RESOLUCIÓN</strong> (aplicar solución) → <strong>CIERRE</strong> (confirmar con usuario, actualizar documentación) → <strong>ANÁLISIS POST-MORTEM</strong> (identificar mejoras preventivas para evitar recurrencia)."
   },
   {
     unidad: 2,
-    q: "¿Cuál es la función principal de la Gestión de Rendimiento en una infraestructura de red?",
+    q: "En la Gestión de Seguridad, ¿cuál es la diferencia entre un IDS y un IPS en la protección de una red?",
     o: [
-      "Detectar y resolver problemas de seguridad como accesos no autorizados e intrusiones.",
-      "Establecer las políticas de uso aceptable y asignar el presupuesto de TI a los distintos departamentos.",
-      "Monitorear, medir, analizar y optimizar métricas como disponibilidad, latencia, throughput y pérdida de paquetes para garantizar el funcionamiento óptimo de la red.",
-      "Gestionar el ciclo de vida de los tickets de incidentes desde la detección hasta el cierre formal."
+      "Un IDS cifra el tráfico de red; un IPS descifra el tráfico sospechoso para analizarlo.",
+      "Un IDS detecta e informa sobre actividades maliciosas sin bloquearlas; un IPS detecta Y bloquea activamente el tráfico malicioso en tiempo real.",
+      "Un IDS protege servidores individuales; un IPS protege toda la red corporativa a nivel perimetral.",
+      "No existe diferencia funcional: IDS e IPS son términos intercambiables para el mismo sistema."
+    ],
+    c: 1,
+    fb: "Un <strong>IDS</strong> (Intrusion Detection System) es pasivo: detecta y alerta sobre actividades sospechosas, pero no bloquea el tráfico. Un <strong>IPS</strong> (Intrusion Prevention System) es activo: detecta Y bloquea en tiempo real el tráfico malicioso. Los sistemas modernos suelen combinar ambas funciones (IDS/IPS). Otros mecanismos de seguridad incluyen autenticación, autorización (RBAC), cifrado (SSL/TLS, AES-256) y firewalls."
+  },
+  {
+    unidad: 2,
+    q: "La Gestión de Administración incluye la 'Política de Uso Aceptable (AUP)'. ¿Cuál es su propósito principal?",
+    o: [
+      "Definir los algoritmos de cifrado que deben usarse para proteger las comunicaciones en la red corporativa.",
+      "Establecer un contrato técnico entre el proveedor de internet y la empresa sobre los niveles mínimos de servicio.",
+      "Especificar las normas de comportamiento que los usuarios deben seguir al usar los recursos de TI: qué está permitido, qué no, y las consecuencias del incumplimiento.",
+      "Documentar los procedimientos técnicos para la instalación y configuración de nuevos dispositivos de red."
     ],
     c: 2,
-    fb: "La <strong>Gestión de Rendimiento</strong> recopila métricas clave (disponibilidad, ancho de banda, latencia, pérdida de paquetes, errores de interfaz), las compara con <em>baselines</em> establecidos, detecta degradación del servicio y aplica optimizaciones. Herramientas como Nagios, Zabbix, Prometheus/Grafana, SolarWinds NPM y PRTG son empleadas en esta área funcional."
+    fb: "La <strong>AUP</strong> (Acceptable Use Policy / Política de Uso Aceptable) es un documento de la Gestión de Administración que establece las normas de uso de recursos de TI: qué está permitido y qué no (uso de redes sociales, descarga de software no autorizado, acceso a contenido inapropiado), y las consecuencias del incumplimiento. La Gestión de Administración también abarca gestión de cambios, costos, documentación, capacitación y auditoría."
   },
 
   // ── UNIDAD 3: Modelos de Gestión de Redes (SNMP, TMN, NETCONF) ─────────
 
   {
     unidad: 3,
-    q: "SNMP (Simple Network Management Protocol) usa principalmente UDP en lugar de TCP como protocolo de transporte. ¿Cuál es la razón principal de esta elección?",
+    q: "En SNMP, ¿qué es un TRAP y en qué se diferencia de una operación GET?",
     o: [
-      "UDP es más seguro que TCP porque cifra automáticamente todos los paquetes de gestión.",
-      "TCP no es compatible con los dispositivos de red como routers y switches de ningún fabricante.",
-      "UDP es más ligero y rápido, lo que lo hace adecuado para operaciones de monitoreo frecuentes donde se prefiere velocidad sobre la garantía de entrega de cada paquete.",
-      "El estándar ISO/IEC obligó a usar UDP en todos los protocolos de gestión de red desde 1989."
-    ],
-    c: 2,
-    fb: "SNMP usa <strong>UDP</strong> (puertos 161 para agentes, 162 para traps) porque el protocolo de gestión necesita ser ligero y rápido. Las operaciones frecuentes de polling (GET) no requieren la sobrecarga de establecer conexiones TCP. Los TRAP (notificaciones espontáneas) tampoco necesitan confirmación. <em>SNMPv3</em> añade seguridad (autenticación + cifrado) manteniendo UDP como transporte."
-  },
-  {
-    unidad: 3,
-    q: "¿Cuál es la principal mejora que introdujo SNMPv3 respecto a las versiones anteriores (v1 y v2c)?",
-    o: [
-      "La capacidad de gestionar múltiples redes simultáneamente desde un único gestor centralizado.",
-      "La operación GETBULK para recuperar múltiples valores en una sola solicitud, reduciendo el tráfico.",
-      "Mecanismos de seguridad robustos: autenticación (verifica la identidad del origen) y privacidad mediante cifrado (protege el contenido de los mensajes).",
-      "La eliminación del modelo Manager-Agent, reemplazándolo por una arquitectura peer-to-peer descentralizada."
-    ],
-    c: 2,
-    fb: "SNMPv1 (1989) y v2c usaban <em>comunidades</em> (strings en texto plano como 'public'/'private') sin ningún cifrado, lo que representaba una grave vulnerabilidad. <strong>SNMPv3</strong> (1999) introdujo autenticación (MD5/SHA para verificar la identidad) y cifrado (DES/AES para proteger el contenido). La operación GETBULK fue introducida en SNMPv2c, no en v3."
-  },
-  {
-    unidad: 3,
-    q: "La arquitectura TMN (Telecommunications Management Network) está organizada en 5 niveles jerárquicos. ¿Cuál es el propósito del Nivel 1 (Negocio) en esta jerarquía?",
-    o: [
-      "Controlar directamente los dispositivos físicos de red como routers y switches.",
-      "Monitorear el estado de las interfaces físicas y detectar errores de transmisión a nivel de hardware.",
-      "Tomar decisiones estratégicas sobre SLAs (Acuerdos de Nivel de Servicio), costos y planificación empresarial relacionadas con la infraestructura de red.",
-      "Gestionar las configuraciones individuales de cada elemento de la red de telecomunicaciones."
-    ],
-    c: 2,
-    fb: "TMN tiene 5 niveles: N1-Negocio (decisiones estratégicas, SLAs, costos), N2-Servicios (calidad y disponibilidad), N3-Red (configuración, fallos, rendimiento global), N4-Elementos (control de dispositivos individuales), N5-Red Física (equipos físicos reales). El <strong>Nivel 1 de Negocio</strong> es el más alto y se ocupa de decisiones empresariales, no técnicas. Fue desarrollado por la ITU-T."
-  },
-  {
-    unidad: 3,
-    q: "¿En qué escenario sería más apropiado usar NETCONF en lugar de SNMP para la gestión de redes?",
-    o: [
-      "Cuando se necesita monitorear el estado de dispositivos heredados (legacy) con alertas simples de umbral.",
-      "Cuando se requiere configuración avanzada y automatizada de redes modernas, con transacciones atómicas, validación previa a la aplicación y rollback automático en caso de error.",
-      "Cuando la red tiene muy baja latencia y se necesita un protocolo ultra-ligero con mínima sobrecarga de protocolo.",
-      "Cuando todos los dispositivos de red son de un único fabricante y se usa su protocolo propietario exclusivamente."
+      "Un TRAP es una versión mejorada del GET que recupera múltiples valores en una sola solicitud.",
+      "Un TRAP es una notificación espontánea que el agente envía al gestor sin que este lo haya solicitado; GET es una consulta que el gestor envía al agente para obtener un valor específico.",
+      "Un TRAP es un mecanismo de autenticación en SNMPv3; GET es la operación básica de lectura de datos.",
+      "Un TRAP bloquea el tráfico no autorizado hacia el agente; GET es la respuesta del agente a esa solicitud."
     ],
     c: 1,
-    fb: "<strong>NETCONF</strong> (RFC 6241, 2006) está diseñado para configuración avanzada de redes modernas. Usa SSH/TLS para seguridad, XML para estructurar datos y YANG como lenguaje de modelado de datos. Sus ventajas sobre SNMP incluyen: <em>transacciones atómicas</em> (todo o nada), validación antes de aplicar, rollback automático y soporte nativo para automatización. SNMP sigue siendo preferido para monitoreo simple de dispositivos heredados."
+    fb: "En SNMP existen dos paradigmas: <em>polling</em> (el gestor pregunta: GET, GETNEXT, GETBULK, SET) y <em>event-driven</em> (el agente avisa). Un <strong>TRAP</strong> es una notificación espontánea que el agente envía al gestor (puerto UDP 162) cuando ocurre un evento importante (interfaz caída, temperatura elevada, autenticación fallida). No requiere que el gestor lo solicite. GET, en cambio, es una consulta explícita del gestor al agente (puerto UDP 161)."
   },
   {
     unidad: 3,
-    q: "Según los estándares internacionales estudiados, ¿qué organismo es responsable del estándar SNMPv3 (RFC 3411-3418)?",
+    q: "En el modelo SNMP, ¿cuál es la diferencia entre la comunidad 'public' y la comunidad 'private'?",
     o: [
-      "ITU-T, el organismo de telecomunicaciones de la ONU que desarrolló el modelo TMN.",
-      "ISO/IEC, responsable del modelo de gestión según OSI (estándar 7498-4).",
-      "IETF (Internet Engineering Task Force), el organismo que define los estándares de Internet mediante documentos RFC.",
-      "IEEE, el instituto que estandariza tecnologías como Ethernet y el descubrimiento de topología (802.1AB)."
+      "'Public' es la comunidad para SNMPv1 y 'private' es la comunidad exclusiva de SNMPv3.",
+      "'Public' permite solo lectura (monitoreo) del dispositivo; 'private' permite escritura (configuración) del dispositivo.",
+      "'Public' es accesible desde Internet sin autenticación; 'private' requiere VPN para acceder al dispositivo.",
+      "'Public' se usa para TRAPs de notificación; 'private' se usa exclusivamente para operaciones GET."
+    ],
+    c: 1,
+    fb: "En SNMPv1 y v2c, las comunidades son strings que funcionan como contraseñas en texto plano. La comunidad <strong>'public'</strong> otorga acceso de solo lectura (GET, GETNEXT, GETBULK) para monitoreo. La comunidad <strong>'private'</strong> otorga acceso de lectura y escritura (SET) para configuración. Esta falta de cifrado es la principal vulnerabilidad de SNMPv1/v2c que SNMPv3 corrige con autenticación real y encriptación."
+  },
+  {
+    unidad: 3,
+    q: "La arquitectura TMN organiza la gestión en 5 niveles. ¿Cuál es la función del Nivel 4 (Gestión de Elementos)?",
+    o: [
+      "Tomar decisiones estratégicas sobre SLAs, costos y planificación empresarial de la infraestructura de red.",
+      "Gestionar la calidad, desempeño y disponibilidad de los servicios ofrecidos a los clientes.",
+      "Controlar individualmente cada dispositivo físico de red: configurar parámetros, leer estado, actualizar firmware.",
+      "Coordinar la configuración, fallos y rendimiento de la red a nivel global, integrando múltiples elementos."
     ],
     c: 2,
-    fb: "El <strong>IETF</strong> (Internet Engineering Task Force) define los protocolos de Internet mediante documentos RFC (Request for Comments). SNMP está definido en los RFCs 3411-3418. La <em>ITU-T</em> desarrolló TMN (M.3400), <em>ISO/IEC</em> define gestión según OSI (7498-4), e <em>IEEE</em> estandariza Ethernet (802.3) y el descubrimiento de topología (802.1AB). NETCONF también es un estándar IETF (RFC 6241)."
+    fb: "Los 5 niveles de TMN: N1-Negocio (SLAs, costos), N2-Servicios (calidad al cliente), N3-Red (gestión global), <strong>N4-Elementos</strong> (control de dispositivos individuales: configurar parámetros de una interfaz específica, leer estado, actualizar IOS de un switch), N5-Red Física (equipos físicos). El Nivel 4 es el control directo sobre dispositivos individuales."
+  },
+  {
+    unidad: 3,
+    q: "¿Qué protocolo de transporte usa NETCONF y cuál es su ventaja de seguridad respecto a SNMP v1/v2c?",
+    o: [
+      "NETCONF usa UDP/IP, igual que SNMP, pero añade cifrado AES-256 de forma opcional en cada sesión.",
+      "NETCONF usa HTTP/REST, lo que permite integrarlo fácilmente con APIs web existentes sin configuración adicional.",
+      "NETCONF usa SSH o TLS, lo que proporciona autenticación fuerte y cifrado de extremo a extremo por defecto, a diferencia de SNMP que usa UDP sin cifrado nativo.",
+      "NETCONF no tiene protocolo de transporte propio; delega la seguridad al firewall perimetral de la organización."
+    ],
+    c: 2,
+    fb: "NETCONF (RFC 6241) usa <strong>SSH o TLS</strong> como transporte, garantizando autenticación fuerte y cifrado de extremo a extremo por defecto. Esto contrasta con SNMPv1/v2c que usa UDP sin cifrado nativo. NETCONF también usa XML para estructurar los datos de configuración y YANG como lenguaje de modelado. Esta combinación lo hace más seguro y adecuado para la automatización de redes modernas."
+  },
+  {
+    unidad: 3,
+    q: "¿Qué es YANG en el contexto de los modelos de gestión de redes modernos?",
+    o: [
+      "Un protocolo de comunicación desarrollado por la IETF como sucesor directo de SNMP para redes de próxima generación.",
+      "Un lenguaje de modelado de datos que define la estructura y restricciones de los datos de configuración y estado gestionados a través de NETCONF y RESTCONF.",
+      "Una herramienta de monitoreo de rendimiento de código abierto similar a Nagios pero diseñada para redes SDN.",
+      "El nivel superior de la jerarquía TMN que coordina las decisiones empresariales sobre la infraestructura de red."
+    ],
+    c: 1,
+    fb: "<strong>YANG</strong> (Yet Another Next Generation, RFC 6020) es un lenguaje de modelado de datos que describe la estructura, sintaxis y semántica de los datos de gestión de red. Define qué datos pueden configurarse, qué restricciones existen y qué estados pueden monitorearse. Se usa conjuntamente con NETCONF (y RESTCONF) para la automatización moderna de redes. Surgió en la cronología de evolución a partir de los años 2010s, después de NETCONF (2006)."
   }
 
 ];
@@ -978,10 +978,10 @@ function showResults() {
   const msg  = document.getElementById("score-msg");
   if (pct === 1) {
     hero.className = "score-hero perfect";
-    msg.textContent = "¡Perfecto! Dominas los fundamentos de gestión de redes en las tres unidades.";
+    msg.textContent = "¡Perfecto! Dominas completamente los contenidos de la Mesa 2.";
   } else if (pct >= 0.8) {
     hero.className = "score-hero good";
-    msg.textContent = "Muy bien. Sólida comprensión de los modelos y áreas de gestión. Revisa los ítems fallidos.";
+    msg.textContent = "Muy bien. Sólida comprensión de los temas de la Mesa 2. Revisa los ítems fallidos.";
   } else if (pct >= 0.6) {
     hero.className = "score-hero regular";
     msg.textContent = "Resultado aceptable. Refuerza los conceptos de las unidades con errores.";

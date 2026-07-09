@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Docente · TEL410 · Gestión de Redes</title>
+<title>Panel Docente · TEL410 · Mesa 2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -154,10 +154,10 @@ tbody td{padding:13px 16px;vertical-align:middle}
 <!-- LOGIN -->
 <section id="login">
   <div class="inner">
-    <div class="eyebrow">TEL410 · Panel Docente · Gestión de Redes</div>
-    <h1 style="margin-bottom:16px">Resultados<br>de Estudiantes</h1>
+    <div class="eyebrow">TEL410 · Panel Docente · Mesa 2</div>
+    <h1 style="margin-bottom:16px">Resultados<br>Mesa 2</h1>
     <p style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;line-height:1.8;color:#555;margin-bottom:28px">
-      Laboratorio de Gestión de Redes<br>
+      Laboratorio de Gestión de Redes · Mesa 2<br>
       Unidades 1, 2 y 3 · TEL410 · 7mo Semestre · FIRNT<br>
       Docente: Ing. Robert Farfán
     </p>
@@ -178,11 +178,11 @@ tbody td{padding:13px 16px;vertical-align:middle}
 <section id="panel">
   <div class="header">
     <div>
-      <div class="eyebrow">TEL410 · Panel Docente · Gestión de Redes</div>
-      <h1>Resultados</h1>
+      <div class="eyebrow">TEL410 · Panel Docente · Mesa 2</div>
+      <h1>Resultados · Mesa 2</h1>
       <p style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#888;line-height:1.7;margin-top:6px">
         Laboratorio de Gestión de Redes · FIRNT · 7mo Semestre<br>
-        Unidades 1, 2 y 3 · Docente: Ing. Robert Farfán
+        Mesa 2 · Unidades 1, 2 y 3 · Docente: Ing. Robert Farfán
       </p>
     </div>
     <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
@@ -328,8 +328,8 @@ const FIREBASE_CONFIG = {
 };
 
 const ACCESS_PASSWORD = "docente2026";
-const COLLECTION = "evaluaciones_tel410";
-const CONFIG_DOC = "quiz_tel410";
+const COLLECTION = "evaluaciones_tel410_m2";
+const CONFIG_DOC = "quiz_tel410_m2";
 const TOTAL_QS   = 15;
 const PASS_SCORE = 9;
 
@@ -338,23 +338,23 @@ try { firebase.initializeApp(FIREBASE_CONFIG); db = firebase.firestore(); } catc
 
 const PREGUNTAS_LABELS = [
   // U1 - Fundamentos de Gestión de Redes
-  "¿Qué es la gestión de redes?",
-  "Componente 'Gestor' (Manager)",
-  "¿Qué es la MIB?",
-  "Necesidad de gestión activa de redes",
-  "Función de los Agentes (Agents)",
+  "Cuatro propósitos de los modelos de gestión",
+  "¿Qué es un OID en la MIB?",
+  "¿Qué NO es componente básico de gestión?",
+  "Característica de la Información Administrada (MIB)",
+  "Monitoreo proactivo vs reporte reactivo",
   // U2 - Áreas Funcionales (FCAPS)
-  "El modelo FCAPS",
-  "VLAN mal configurada: ¿qué área funcional?",
-  "KPIs MTBF y MTTR",
-  "Tríada CIA en seguridad",
-  "Función de la Gestión de Rendimiento",
+  "¿Qué es una CMDB?",
+  "CPU al 95%: ¿qué área funcional?",
+  "Ciclo de vida correcto de un fallo",
+  "Diferencia entre IDS e IPS",
+  "Propósito de la Política de Uso Aceptable (AUP)",
   // U3 - Modelos de Gestión
-  "SNMP usa UDP en lugar de TCP",
-  "Mejora principal de SNMPv3",
-  "Nivel 1 (Negocio) en TMN",
-  "NETCONF vs SNMP: ¿cuándo usar NETCONF?",
-  "Organismo responsable de SNMP (RFC 3411-3418)"
+  "¿Qué es un TRAP SNMP vs GET?",
+  "Comunidades 'public' y 'private' en SNMP",
+  "Nivel 4 (Elementos) en TMN",
+  "Protocolo de transporte de NETCONF",
+  "¿Qué es YANG?"
 ];
 
 const UNIT_LABELS = [1,1,1,1,1,2,2,2,2,2,3,3,3,3,3];
@@ -374,20 +374,20 @@ function doLogin() {
   const err = document.getElementById("login-error");
   if (val === ACCESS_PASSWORD) {
     err.classList.remove("show");
-    sessionStorage.setItem("tel410_docente_auth","1");
+    sessionStorage.setItem("tel410_m2_docente_auth","1");
     document.getElementById("login").style.display = "none";
     document.getElementById("panel").style.display = "block";
     loadConfig(); loadData();
   } else { err.classList.add("show"); }
 }
 function logout() {
-  sessionStorage.removeItem("tel410_docente_auth");
+  sessionStorage.removeItem("tel410_m2_docente_auth");
   document.getElementById("panel").style.display = "none";
   document.getElementById("login").style.display = "flex";
   document.getElementById("inp-pass").value = "";
 }
 window.addEventListener("DOMContentLoaded", () => {
-  if (sessionStorage.getItem("tel410_docente_auth") === "1") {
+  if (sessionStorage.getItem("tel410_m2_docente_auth") === "1") {
     document.getElementById("login").style.display = "none";
     document.getElementById("panel").style.display = "block";
     loadConfig(); loadData();
@@ -633,7 +633,7 @@ function exportCSV() {
   const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
-  a.href=url;a.download="resultados_tel410.csv";a.click();URL.revokeObjectURL(url);
+  a.href=url;a.download="resultados_tel410_mesa2.csv";a.click();URL.revokeObjectURL(url);
 }
 
 function escHtml(str){
