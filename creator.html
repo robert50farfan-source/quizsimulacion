@@ -9,12 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Para leer archivos .docx en el navegador -->
+<script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <style>
 :root{--ink:#0d0b14;--paper:#f2f0eb;--paper2:#e5e0d5;--teal:#0fb5a0;--coral:#ff5d3b;--violet:#5b2be8;--gold:#ffb02e;--lime:#d6ff3f;--shadow:6px 6px 0 var(--ink)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;background-image:radial-gradient(var(--paper2) 1.4px,transparent 1.4px);background-size:22px 22px}
 h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;font-size:clamp(32px,5vw,64px);letter-spacing:-.02em}
-h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px);letter-spacing:-.01em}
 .eyebrow{font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:12px;display:inline-flex;align-items:center;gap:10px;color:var(--violet);margin-bottom:14px}
 .eyebrow::before{content:"";width:28px;height:3px;background:var(--teal)}
 .page-wrap{max-width:900px;margin:0 auto;padding:clamp(20px,4vw,60px)}
@@ -25,8 +26,9 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
 .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:4px}
 .field-group{display:flex;flex-direction:column;gap:5px}
 .field-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#555}
-.field-input,.field-select{font-family:'Archivo',sans-serif;font-size:15px;border:3px solid var(--ink);background:var(--paper);padding:10px 14px;border-radius:4px;box-shadow:3px 3px 0 var(--ink);outline:none;width:100%;transition:.15s}
-.field-input:focus,.field-select:focus{border-color:var(--teal);box-shadow:3px 3px 0 var(--teal)}
+.field-input,.field-ta{font-family:'Archivo',sans-serif;font-size:15px;border:3px solid var(--ink);background:var(--paper);padding:10px 14px;border-radius:4px;box-shadow:3px 3px 0 var(--ink);outline:none;width:100%;transition:.15s}
+.field-ta{resize:vertical;min-height:72px}
+.field-input:focus,.field-ta:focus{border-color:var(--teal);box-shadow:3px 3px 0 var(--teal)}
 .field-hint{font-family:'Space Mono',monospace;font-size:10px;color:#888;line-height:1.5}
 .btn-main{display:inline-flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;background:var(--ink);color:var(--lime);border:3px solid var(--ink);padding:11px 22px;border-radius:99px;cursor:pointer;box-shadow:var(--shadow);transition:.15s}
 .btn-main:hover:not(:disabled){background:var(--violet);box-shadow:8px 8px 0 var(--ink)}
@@ -37,28 +39,60 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
 .btn-sm:hover{background:var(--lime)}
 .btn-sm.danger{border-color:var(--coral);color:var(--coral)}
 .btn-sm.danger:hover{background:var(--coral);color:#fff}
+
+/* API key */
 .key-status{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;margin-top:8px;min-height:18px}
 .key-status.ok{color:var(--teal)} .key-status.err{color:var(--coral)}
-.topics-list{display:flex;flex-direction:column;gap:10px}
-.topic-row{display:grid;grid-template-columns:1fr 130px 40px;gap:10px;align-items:end;padding:14px;border:2px solid var(--paper2);border-radius:4px;background:var(--paper)}
-.topic-row:hover{border-color:var(--ink)}
-.topic-badge{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:2px solid;display:inline-block;margin-bottom:6px}
+
+/* Topic cards */
+.topics-list{display:flex;flex-direction:column;gap:14px}
+.topic-card{border:3px solid var(--paper2);border-radius:4px;background:var(--paper);overflow:hidden;transition:border-color .15s}
+.topic-card:hover{border-color:var(--ink)}
+.tc-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--paper2);border-bottom:2px solid var(--paper2);flex-wrap:wrap}
+.topic-badge{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:2px solid}
 .t0{border-color:var(--teal);color:var(--teal)} .t1{border-color:var(--coral);color:var(--coral)}
 .t2{border-color:var(--gold);color:var(--gold)} .t3{border-color:var(--violet);color:var(--violet)}
 .t4{border-color:#777;color:#777}
-.count-ctrl{display:flex;align-items:center;gap:6px}
-.count-val{font-family:'Fraunces',serif;font-weight:900;font-size:26px;min-width:30px;text-align:center;line-height:1}
+.tc-count{display:flex;align-items:center;gap:6px;margin-left:auto}
+.count-val{font-family:'Fraunces',serif;font-weight:900;font-size:24px;min-width:28px;text-align:center;line-height:1}
+.tc-body{padding:16px}
+.tc-body .field-group{margin-bottom:12px}
+.tc-body .field-group:last-child{margin-bottom:0}
+.tc-name{font-size:15px;font-weight:700;padding:9px 13px}
+.tc-desc{font-size:13px;min-height:52px;padding:8px 12px;border:2px solid var(--paper2);box-shadow:2px 2px 0 var(--paper2)}
+.tc-desc:focus{border-color:var(--teal);box-shadow:2px 2px 0 var(--teal)}
+
+/* File upload */
+.file-zone{border:2px dashed var(--paper2);border-radius:4px;padding:12px 16px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px;min-height:46px}
+.file-zone:hover{border-color:var(--teal);background:#f0faf8}
+.file-zone.has-file{border-style:solid;border-color:var(--teal);background:#f0faf8}
+.file-zone.loading{border-color:var(--gold);background:#fffbf0;cursor:default}
+.file-zone.error{border-color:var(--coral);background:#fff0ed}
+.file-icon{font-size:18px;flex-shrink:0}
+.file-prompt-txt{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#888}
+.file-chosen-name{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--teal);flex:1;word-break:break-all}
+.file-size{font-family:'Space Mono',monospace;font-size:10px;color:#888;white-space:nowrap}
+.file-clear{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:none;border:2px solid var(--coral);color:var(--coral);padding:2px 8px;border-radius:99px;cursor:pointer;flex-shrink:0}
+.file-clear:hover{background:var(--coral);color:#fff}
+.file-err-txt{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--coral);margin-top:5px}
+
+/* Total bar */
 .total-bar{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 18px;border:3px solid var(--ink);border-radius:4px;background:var(--lime)}
 .total-bar.warn{background:#ffd5cc;border-color:var(--coral)}
 .total-num{font-family:'Fraunces',serif;font-weight:900;font-size:36px;line-height:1}
 .total-lbl{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#555;margin-top:2px}
+
+/* Progress */
 .prog-wrap{margin-bottom:14px}
-.prog-header{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;margin-bottom:5px;display:flex;justify-content:space-between}
+.prog-header{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;margin-bottom:5px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .prog-track{height:8px;background:var(--paper2);border-radius:99px;overflow:hidden;border:2px solid var(--ink)}
 .prog-fill{height:100%;border-radius:99px;background:var(--teal);transition:width .4s}
 .prog-fill.done{background:var(--lime)} .prog-fill.err{background:var(--coral)}
+.prog-sub{font-size:10px;color:#aaa;font-weight:400}
+
+/* Question preview */
 .q-card{border:3px solid var(--ink);border-radius:4px;padding:18px;margin-bottom:14px;background:var(--paper)}
-.q-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.q-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
 .q-num-tag{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#888}
 .edit-ta{font-family:'Archivo',sans-serif;font-size:15px;border:2px solid var(--paper2);background:var(--paper);padding:8px 12px;border-radius:4px;outline:none;width:100%;transition:.12s;resize:vertical}
 .edit-ta:focus{border-color:var(--teal)}
@@ -70,17 +104,23 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
 .opt-radio-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;color:#555}
 .opt-radio-lbl input{accent-color:var(--teal)}
 .fb-wrap{background:#f0faf8;border:2px solid #d0e8e5;border-radius:4px;padding:10px 12px;margin-top:6px}
-.fb-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+.fb-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
 .fb-ta{font-family:'Archivo',sans-serif;font-size:13px;border:none;background:transparent;outline:none;width:100%;resize:vertical;min-height:54px;color:#0a6b60;line-height:1.5}
+
+/* Alerts */
 .alert{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:11px 15px;border-radius:4px;margin-bottom:14px;border:3px solid var(--ink);line-height:1.6}
-.alert.info{background:var(--lime)} .alert.warn{background:var(--gold)} .alert.err{background:#ffd5cc;color:var(--coral);border-color:var(--coral)} .alert.ok{background:#d6fff9;border-color:var(--teal)}
+.alert.info{background:var(--lime)} .alert.warn{background:var(--gold)}
+.alert.err{background:#ffd5cc;color:var(--coral);border-color:var(--coral)} .alert.ok{background:#d6fff9;border-color:var(--teal)}
+
+/* Success URLs */
 .url-box{border:3px solid var(--ink);border-radius:4px;padding:14px 18px;background:var(--paper2);margin-bottom:12px}
-.url-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:5px}
+.url-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:5px}
 .url-val{font-family:'Space Mono',monospace;font-size:12px;word-break:break-all;color:var(--ink)}
 .copy-btn{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:var(--teal);color:var(--ink);border:2px solid var(--ink);padding:3px 10px;border-radius:99px;cursor:pointer;margin-left:8px;vertical-align:middle}
 .copy-btn:hover{background:var(--lime)}
-.hidden{display:none!important}
+
 .sep-tema{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.14em;border-bottom:3px solid var(--ink);padding-bottom:8px;margin:20px 0 12px}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
@@ -90,9 +130,9 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
   <div style="margin-bottom:32px;padding-bottom:24px;border-bottom:3px solid var(--ink)">
     <div class="eyebrow">FIRNT · Herramienta Docente · Generador IA</div>
     <h1>Creador de<br><span style="color:var(--teal)">Quiz Automático</span></h1>
-    <p style="margin-top:12px;font-family:'Space Mono',monospace;font-size:12px;color:#666;max-width:54ch;line-height:1.9">
-      Define materia, temas y cantidad de preguntas por tema.<br>
-      Claude IA genera el quiz completo · 10 a 30 preguntas · 1 a 5 temas.
+    <p style="margin-top:12px;font-family:'Space Mono',monospace;font-size:12px;color:#666;max-width:56ch;line-height:1.9">
+      Define materia, temas, subtemas y material de estudio.<br>
+      Claude IA genera las preguntas desde el contenido de tus archivos.
     </p>
   </div>
 
@@ -100,8 +140,7 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
   <div class="card">
     <div class="card-title"><span class="step-num">1</span>Clave API de Claude</div>
     <p style="font-size:14px;margin-bottom:14px;line-height:1.7;color:#555;max-width:56ch">
-      Se guarda solo en tu navegador (localStorage). Nunca se sube al servidor ni al repositorio.
-      Obtén tu key en <strong>console.anthropic.com</strong>.
+      Se guarda solo en tu navegador (localStorage). Obtén tu key en <strong>console.anthropic.com</strong>.
     </p>
     <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
       <div class="field-group" style="flex:1;min-width:260px">
@@ -136,33 +175,40 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
       </div>
       <div class="field-group">
         <label class="field-label" for="inp-facultad">Facultad</label>
-        <input class="field-input" id="inp-facultad" type="text" placeholder="FIRNT" value="FIRNT">
+        <input class="field-input" id="inp-facultad" type="text" value="FIRNT">
       </div>
       <div class="field-group">
         <label class="field-label" for="inp-quiz-id">ID del quiz <span style="color:var(--coral)">*</span></label>
         <input class="field-input" id="inp-quiz-id" type="text" placeholder="mat216_m3" style="font-family:'Space Mono',monospace">
-        <span class="field-hint">Solo a-z, 0-9, guión bajo. Se usa en la URL.</span>
+        <span class="field-hint">Solo a-z, 0-9, guión bajo. Define la URL del quiz.</span>
       </div>
       <div class="field-group">
         <label class="field-label" for="inp-pass-pct">Aprobación (%)</label>
         <input class="field-input" id="inp-pass-pct" type="number" value="60" min="1" max="100" step="5">
-        <span class="field-hint">60% = al menos 60% de respuestas correctas</span>
       </div>
       <div class="field-group">
         <label class="field-label" for="inp-panel-pass">Contraseña panel docente</label>
         <input class="field-input" id="inp-panel-pass" type="text" value="docente2026">
       </div>
     </div>
+
+    <!-- Contexto global -->
+    <div class="field-group" style="margin-top:6px">
+      <label class="field-label" for="inp-ctx">Contexto general del quiz (opcional)</label>
+      <textarea class="field-ta" id="inp-ctx" placeholder="Ej: Bibliografía: Hillier &amp; Lieberman Cap. 17. Nivel: tercer semestre. Enfatizar conceptos prácticos. Evitar preguntas de cálculo numérico extenso."></textarea>
+      <span class="field-hint">Se incluye en el prompt de todos los temas. Útil para especificar bibliografía, nivel, restricciones o estilo de preguntas.</span>
+    </div>
   </div>
 
   <!-- PASO 3: TEMAS -->
   <div class="card">
-    <div class="card-title"><span class="step-num">3</span>Temas y cantidad de preguntas</div>
-    <p style="font-size:14px;margin-bottom:14px;line-height:1.6;color:#555;max-width:56ch">
-      1 a 5 temas. Ajusta cuántas preguntas genera la IA por tema. Total válido: 10 a 30 preguntas.
+    <div class="card-title"><span class="step-num">3</span>Temas, subtemas y material de estudio</div>
+    <p style="font-size:14px;margin-bottom:16px;line-height:1.6;color:#555;max-width:58ch">
+      1 a 5 temas. Para cada uno: nombre obligatorio, descripción de subtemas y archivo de material opcionales.
+      Total válido: 10 a 30 preguntas.
     </p>
     <div class="topics-list" id="topics-list"></div>
-    <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+    <div style="display:flex;gap:10px;margin-top:14px;align-items:center">
       <button class="btn-sm" id="btn-add" onclick="addTopic()">+ Agregar tema</button>
       <span id="max-hint" class="hidden" style="font-family:'Space Mono',monospace;font-size:11px;color:#888">Máximo 5 temas.</span>
     </div>
@@ -189,7 +235,7 @@ h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px)
   <!-- PASO 5: PREVIEW -->
   <div class="card hidden" id="card-preview">
     <div class="card-title"><span class="step-num">5</span>Revisar y editar preguntas</div>
-    <div class="alert info" id="preview-msg">Revisa las preguntas. Puedes editar texto, opciones, respuesta correcta y feedback.</div>
+    <div class="alert info" id="preview-msg">Revisa las preguntas. Edita texto, opciones, respuesta correcta y feedback antes de guardar.</div>
     <div id="questions-wrap"></div>
   </div>
 
@@ -221,12 +267,17 @@ const BASE_URL="https://robert50farfan-source.github.io/quizsimulacion";
 const MODEL="claude-haiku-4-5-20251001";
 const LETTERS=["A","B","C","D"];
 const T_COLORS=["teal","coral","gold","violet","ink"];
+const MAX_FILE_BYTES=4*1024*1024; // 4 MB para PDF (límite seguro API)
+const MAX_TEXT_CHARS=15000;       // truncar texto plano
 
 let db=null;
 try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.firestore();}catch(e){}
 
 let apiKey=localStorage.getItem("creator_api_key")||"";
-let topics=[{name:"",count:5}];
+
+// Estado de cada tema
+// { name, count, desc, fileObj, fileType, fileBase64, fileText, fileErr }
+let topics=[{name:"",count:5,desc:"",fileObj:null,fileType:"",fileBase64:"",fileText:"",fileErr:""}];
 let generated=[];
 
 window.addEventListener("DOMContentLoaded",()=>{
@@ -250,10 +301,7 @@ function clearApiKey(){
   document.getElementById("inp-apikey").value="";
   setKeyStatus("Key eliminada.",false);
 }
-function setKeyStatus(msg,ok){
-  const el=document.getElementById("key-status");
-  el.className="key-status "+(ok?"ok":"err");el.textContent=msg;
-}
+function setKeyStatus(msg,ok){const el=document.getElementById("key-status");el.className="key-status "+(ok?"ok":"err");el.textContent=msg;}
 
 // ── ID SUGGESTION ────────────────────────────────────────────────────
 function suggestId(){
@@ -262,32 +310,173 @@ function suggestId(){
   if(s&&m)document.getElementById("inp-quiz-id").value=s+"_"+m;
 }
 
-// ── TOPICS ───────────────────────────────────────────────────────────
+// ── TOPICS RENDER ────────────────────────────────────────────────────
 function renderTopics(){
-  document.getElementById("topics-list").innerHTML=topics.map((t,i)=>`
-    <div class="topic-row">
-      <div>
-        <span class="topic-badge t${i}">Tema ${i+1}</span>
-        <input class="field-input" style="margin:0" type="text"
-          placeholder="Nombre del tema (ej. Fundamentos de Modelación)"
-          value="${esc(t.name)}" oninput="topics[${i}].name=this.value">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Preguntas</label>
-        <div class="count-ctrl">
-          <button class="btn-sm" onclick="chgCount(${i},-1)" style="padding:4px 10px">−</button>
-          <span class="count-val" id="cv-${i}">${t.count}</span>
-          <button class="btn-sm" onclick="chgCount(${i},+1)" style="padding:4px 10px">+</button>
-        </div>
-      </div>
-      <div>${topics.length>1?`<button class="btn-sm danger" onclick="rmTopic(${i})">✕</button>`:`<span style="width:36px;display:inline-block"></span>`}</div>
-    </div>`).join("");
+  document.getElementById("topics-list").innerHTML=topics.map((t,i)=>topicCardHTML(t,i)).join("");
   document.getElementById("btn-add").classList.toggle("hidden",topics.length>=5);
   document.getElementById("max-hint").classList.toggle("hidden",topics.length<5);
   updateTotal();
 }
-function addTopic(){if(topics.length>=5)return;topics.push({name:"",count:5});renderTopics();}
-function rmTopic(i){if(topics.length<=1)return;topics.splice(i,1);renderTopics();}
+
+function topicCardHTML(t,i){
+  const filePart=buildFileZoneHTML(t,i);
+  return `
+  <div class="topic-card" id="tc-${i}">
+    <div class="tc-header">
+      <span class="topic-badge t${i}">Tema ${i+1}</span>
+      <div class="tc-count">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#888;margin-right:4px">PREGUNTAS</span>
+        <button class="btn-sm" onclick="chgCount(${i},-1)" style="padding:3px 9px">−</button>
+        <span class="count-val" id="cv-${i}">${t.count}</span>
+        <button class="btn-sm" onclick="chgCount(${i},+1)" style="padding:3px 9px">+</button>
+      </div>
+      ${topics.length>1?`<button class="btn-sm danger" onclick="rmTopic(${i})" style="margin-left:6px">✕ Eliminar</button>`:""}
+    </div>
+    <div class="tc-body">
+      <div class="field-group">
+        <label class="field-label">Nombre del tema <span style="color:var(--coral)">*</span></label>
+        <input class="field-input tc-name" type="text" id="tname-${i}"
+          placeholder="Ej. Simulación y Sistemas de Colas"
+          value="${esc(t.name)}" oninput="topics[${i}].name=this.value">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Subtemas / descripción <span style="color:#bbb">(opcional)</span></label>
+        <textarea class="field-ta tc-desc" id="tdesc-${i}"
+          placeholder="Ej. Incluye: notación Kendall, M/M/1, M/D/c, factor de utilización ρ, Ley de Little, generador LCG"
+          oninput="topics[${i}].desc=this.value">${esc(t.desc)}</textarea>
+        <span class="field-hint">Claude usará estos subtemas para enfocar las preguntas generadas.</span>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Material de estudio <span style="color:#bbb">(opcional)</span></label>
+        <input type="file" id="fi-${i}" accept=".pdf,.txt,.docx" style="display:none"
+          onchange="handleFile(${i},this.files[0])">
+        ${filePart}
+        <span class="field-hint">PDF, TXT o DOCX · Máximo 4 MB · Claude leerá el contenido para generar preguntas más precisas.</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildFileZoneHTML(t,i){
+  if(t.fileObj&&!t.fileErr){
+    return `<div class="file-zone has-file" onclick="document.getElementById('fi-${i}').click()">
+      <span class="file-icon">📄</span>
+      <span class="file-chosen-name">${esc(t.fileObj.name)}</span>
+      <span class="file-size">${fmtSize(t.fileObj.size)}</span>
+      <button class="file-clear" onclick="clearFile(${i},event)">✕</button>
+    </div>`;
+  }
+  if(t.fileErr){
+    return `<div class="file-zone error" onclick="document.getElementById('fi-${i}').click()">
+      <span class="file-icon">⚠</span>
+      <span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--coral);flex:1">${esc(t.fileErr)}</span>
+      <button class="file-clear" onclick="clearFile(${i},event)">✕</button>
+    </div>`;
+  }
+  return `<div class="file-zone" onclick="document.getElementById('fi-${i}').click()">
+    <span class="file-icon">📎</span>
+    <span class="file-prompt-txt">Elige un archivo — PDF, TXT o DOCX</span>
+  </div>`;
+}
+
+// Actualizar solo la zona de archivo de un tema (sin re-render completo)
+function refreshFileZone(i){
+  const t=topics[i];
+  const container=document.querySelector(`#tc-${i} .field-group:last-child`);
+  if(!container)return;
+  const oldZone=container.querySelector(".file-zone");
+  if(!oldZone)return;
+  const tmp=document.createElement("div");
+  tmp.innerHTML=buildFileZoneHTML(t,i);
+  container.replaceChild(tmp.firstElementChild,oldZone);
+}
+
+// ── FILE HANDLING ────────────────────────────────────────────────────
+async function handleFile(i,file){
+  if(!file)return;
+  topics[i].fileObj=null;topics[i].fileType="";topics[i].fileBase64="";topics[i].fileText="";topics[i].fileErr="";
+
+  // Validar tipo
+  const name=file.name.toLowerCase();
+  const isPDF=file.type==="application/pdf"||name.endsWith(".pdf");
+  const isTXT=file.type==="text/plain"||name.endsWith(".txt");
+  const isDOCX=name.endsWith(".docx");
+  if(!isPDF&&!isTXT&&!isDOCX){
+    topics[i].fileErr="Formato no soportado. Usa PDF, TXT o DOCX.";
+    refreshFileZone(i);return;
+  }
+  // Validar tamaño
+  if(file.size>MAX_FILE_BYTES){
+    topics[i].fileErr=`Archivo demasiado grande (${fmtSize(file.size)}). Máximo 4 MB.`;
+    refreshFileZone(i);return;
+  }
+
+  // Mostrar "cargando"
+  const container=document.querySelector(`#tc-${i} .field-group:last-child`);
+  if(container){
+    const oldZone=container.querySelector(".file-zone");
+    if(oldZone){
+      const tmp=document.createElement("div");
+      tmp.innerHTML=`<div class="file-zone loading"><span class="file-icon">⏳</span><span class="file-prompt-txt">Leyendo ${esc(file.name)}…</span></div>`;
+      container.replaceChild(tmp.firstElementChild,oldZone);
+    }
+  }
+
+  try{
+    if(isPDF){
+      topics[i].fileBase64=await fileToBase64(file);
+      topics[i].fileType="pdf";
+    }else if(isTXT){
+      const txt=await file.text();
+      topics[i].fileText=txt.slice(0,MAX_TEXT_CHARS);
+      topics[i].fileType="txt";
+    }else if(isDOCX){
+      if(typeof mammoth==="undefined"){throw new Error("mammoth.js no cargó. Revisa tu conexión a internet.");}
+      const ab=await file.arrayBuffer();
+      const result=await mammoth.extractRawText({arrayBuffer:ab});
+      topics[i].fileText=result.value.slice(0,MAX_TEXT_CHARS);
+      topics[i].fileType="docx";
+    }
+    topics[i].fileObj=file;
+  }catch(e){
+    topics[i].fileErr="Error al leer el archivo: "+e.message;
+  }
+  refreshFileZone(i);
+}
+
+function clearFile(i,event){
+  if(event){event.stopPropagation();}
+  topics[i].fileObj=null;topics[i].fileType="";topics[i].fileBase64="";topics[i].fileText="";topics[i].fileErr="";
+  document.getElementById("fi-"+i).value="";
+  refreshFileZone(i);
+}
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>resolve(e.target.result.split(",")[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function fmtSize(bytes){
+  if(bytes<1024)return bytes+" B";
+  if(bytes<1024*1024)return (bytes/1024).toFixed(0)+" KB";
+  return (bytes/(1024*1024)).toFixed(1)+" MB";
+}
+
+// ── TOPIC CONTROLS ───────────────────────────────────────────────────
+function addTopic(){
+  if(topics.length>=5)return;
+  topics.push({name:"",count:5,desc:"",fileObj:null,fileType:"",fileBase64:"",fileText:"",fileErr:""});
+  renderTopics();
+}
+function rmTopic(i){
+  if(topics.length<=1)return;
+  topics.splice(i,1);
+  renderTopics();
+}
 function chgCount(i,d){
   topics[i].count=Math.max(1,Math.min(20,topics[i].count+d));
   document.getElementById("cv-"+i).textContent=topics[i].count;
@@ -310,9 +499,15 @@ function validate(){
   const id=document.getElementById("inp-quiz-id").value.trim();
   if(!id)errs.push("Ingresa el ID del quiz.");
   if(id&&!/^[a-z0-9_]+$/.test(id))errs.push("El ID solo acepta letras minúsculas, números y guiones bajos.");
-  topics.forEach((t,i)=>{if(!t.name.trim())errs.push(`Ingresa el nombre del Tema ${i+1}.`);});
+  // Sync topic names from DOM (in case of late oninput)
+  topics.forEach((t,i)=>{
+    const el=document.getElementById("tname-"+i);if(el)t.name=el.value.trim();
+    const de=document.getElementById("tdesc-"+i);if(de)t.desc=de.value.trim();
+    if(!t.name)errs.push(`Ingresa el nombre del Tema ${i+1}.`);
+    if(t.fileErr)errs.push(`Error en archivo del Tema ${i+1}: ${t.fileErr}`);
+  });
   const tot=topics.reduce((s,t)=>s+t.count,0);
-  if(tot<10||tot>30)errs.push(`Total de preguntas debe ser entre 10 y 30 (actualmente: ${tot}).`);
+  if(tot<10||tot>30)errs.push(`Total de preguntas debe ser 10–30 (actualmente: ${tot}).`);
   return errs;
 }
 
@@ -321,9 +516,11 @@ async function startGen(){
   const errs=validate();
   const ab=document.getElementById("gen-alerts");ab.innerHTML="";
   if(errs.length){ab.innerHTML=`<div class="alert err">${errs.map(e=>"▸ "+e).join("<br>")}</div>`;return;}
+
   const materia=document.getElementById("inp-materia").value.trim();
   const sigla=document.getElementById("inp-sigla").value.trim();
   const mesa=document.getElementById("inp-mesa").value.trim();
+  const globalCtx=document.getElementById("inp-ctx").value.trim();
 
   const btn=document.getElementById("btn-gen");
   btn.disabled=true;btn.textContent="Generando…";
@@ -333,22 +530,25 @@ async function startGen(){
   document.getElementById("card-ok").classList.add("hidden");
   generated=[];
 
-  document.getElementById("prog-bars").innerHTML=topics.map((t,i)=>`
-    <div class="prog-wrap">
+  document.getElementById("prog-bars").innerHTML=topics.map((t,i)=>{
+    const hasFn=t.fileObj?`<span class="prog-sub"> · ${esc(t.fileObj.name)}</span>`:"";
+    const hasDe=t.desc?`<span class="prog-sub"> · con descripción</span>`:"";
+    return`<div class="prog-wrap">
       <div class="prog-header">
-        <span>Tema ${i+1}: ${esc(t.name)} (${t.count} preg.)</span>
+        <span>Tema ${i+1}: ${esc(t.name)} (${t.count} preg.)${hasFn}${hasDe}</span>
         <span id="ps-${i}" style="color:#888">Pendiente</span>
       </div>
       <div class="prog-track"><div class="prog-fill" id="pf-${i}" style="width:0%"></div></div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 
   let allOk=true;
   for(let i=0;i<topics.length;i++){
-    setProg(i,30,"Consultando IA…","");
+    setProg(i,30,"Consultando Claude…","");
     try{
-      const qs=await genTopic(topics[i],i,materia,sigla,mesa);
+      const qs=await genTopic(topics[i],i,materia,sigla,mesa,globalCtx);
       generated.push(...qs);
-      setProg(i,100,`✔ ${qs.length} preguntas generadas`,"done");
+      setProg(i,100,`✔ ${qs.length} preguntas`,"done");
     }catch(e){
       setProg(i,100,"⚠ "+e.message,"err");allOk=false;
     }
@@ -362,6 +562,7 @@ async function startGen(){
   }
   if(!allOk)ab.innerHTML=`<div class="alert warn">Algunos temas tuvieron errores. Revisa el resultado y regenera si es necesario.</div>`;
 }
+
 function setProg(i,pct,lbl,state){
   document.getElementById("pf-"+i).style.width=pct+"%";
   document.getElementById("pf-"+i).className="prog-fill"+(state?" "+state:"");
@@ -370,18 +571,43 @@ function setProg(i,pct,lbl,state){
   s.style.color=state==="done"?"var(--teal)":state==="err"?"var(--coral)":"var(--gold)";
 }
 
-async function genTopic(topic,idx,materia,sigla,mesa){
-  const prompt=`Genera exactamente ${topic.count} preguntas de selección múltiple sobre el tema "${topic.name}" para la materia "${materia}"${sigla?" ("+sigla+")":""}${mesa?" — "+mesa:""}.
+async function genTopic(topic,idx,materia,sigla,mesa,globalCtx){
+  // Construir el prompt de texto
+  let prompt=`Genera exactamente ${topic.count} preguntas de selección múltiple`;
+  prompt+=` sobre el tema "${topic.name}"`;
+  prompt+=` para la materia "${materia}"${sigla?" ("+sigla+")":""}${mesa?" — "+mesa:""}.`;
+
+  if(topic.desc){prompt+=`\n\nSUBTEMAS A EVALUAR:\n${topic.desc}`;}
+
+  if(globalCtx){prompt+=`\n\nCONTEXTO GENERAL:\n${globalCtx}`;}
+
+  if(topic.fileType&&topic.fileType!=="pdf"&&topic.fileText){
+    prompt+=`\n\nMATERIAL DE ESTUDIO (usa este contenido como base para las preguntas):\n${topic.fileText}`;
+  }
+
+  if(topic.fileType==="pdf"){
+    prompt+=`\n\nSe adjunta el material de estudio como documento PDF. Basa las preguntas en su contenido.`;
+  }
+
+  prompt+=`
 
 REQUISITOS:
 - Exactamente 4 opciones (A, B, C, D), solo una correcta
-- Nivel universitario: mezcla definición, comparación, aplicación, análisis
+- Nivel universitario: mezcla definición, comparación, aplicación y análisis
 - El feedback explica POR QUÉ la respuesta es correcta y por qué las demás no (2-4 oraciones en español)
+- NO repitas conceptos entre preguntas del mismo tema
 
 Responde ÚNICAMENTE con JSON array válido, sin bloques markdown, sin texto adicional:
-[{"q":"texto","o":["A","B","C","D"],"c":0,"fb":"feedback"}]`;
+[{"q":"texto","o":["A","B","C","D"],"c":0,"fb":"feedback en español"}]`;
 
-  const text=await callClaude(prompt);
+  // Construir content para la API
+  const content=[];
+  if(topic.fileType==="pdf"&&topic.fileBase64){
+    content.push({type:"document",source:{type:"base64",media_type:"application/pdf",data:topic.fileBase64}});
+  }
+  content.push({type:"text",text:prompt});
+
+  const text=await callClaude(content);
   const arr=parseJ(text);
   return arr.map(q=>({
     ti:idx,tema:topic.name,
@@ -392,17 +618,20 @@ Responde ÚNICAMENTE con JSON array válido, sin bloques markdown, sin texto adi
   }));
 }
 
-async function callClaude(prompt){
+async function callClaude(content){
   const res=await fetch("https://api.anthropic.com/v1/messages",{
     method:"POST",
     headers:{"content-type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-    body:JSON.stringify({model:MODEL,max_tokens:4096,
-      system:"Eres un docente universitario experto. Generas preguntas de evaluación de alta calidad. Respondes ÚNICAMENTE con JSON válido, sin texto adicional, sin bloques de código markdown.",
-      messages:[{role:"user",content:prompt}]})
+    body:JSON.stringify({
+      model:MODEL,max_tokens:4096,
+      system:"Eres un docente universitario experto. Generas preguntas de evaluación de alta calidad basadas en el material proporcionado. Respondes ÚNICAMENTE con JSON válido, sin texto adicional, sin bloques de código markdown.",
+      messages:[{role:"user",content}]
+    })
   });
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||"HTTP "+res.status);}
   const d=await res.json();return d.content[0].text;
 }
+
 function parseJ(txt){
   const c=txt.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
   try{return JSON.parse(c);}catch(e){
@@ -422,7 +651,7 @@ function renderPreview(){
     }
     html+=`
     <div class="q-card" id="qc-${i}">
-      <div class="q-card-header">
+      <div class="q-card-hdr">
         <div class="q-num-tag">Preg. ${i+1} · Tema ${q.ti+1}</div>
         <button class="btn-sm danger" onclick="delQ(${i})">✕ Eliminar</button>
       </div>
@@ -436,7 +665,7 @@ function renderPreview(){
           </div>`).join("")}
       </div>
       <div class="fb-wrap">
-        <div class="fb-label">Feedback</div>
+        <div class="fb-lbl">Feedback</div>
         <textarea class="fb-ta" id="qf-${i}">${esc(q.fb)}</textarea>
       </div>
     </div>`;
@@ -444,6 +673,7 @@ function renderPreview(){
   document.getElementById("questions-wrap").innerHTML=html;
   document.getElementById("preview-msg").textContent=`${generated.length} preguntas generadas. Edita lo que necesites antes de guardar.`;
 }
+
 function delQ(i){
   if(!confirm("¿Eliminar esta pregunta?"))return;
   generated.splice(i,1);
@@ -464,7 +694,7 @@ function collectQs(){
   return generated.map((q,i)=>{
     const radios=document.querySelectorAll(`input[name="cr-${i}"]`);
     let c=q.c;radios.forEach(r=>{if(r.checked)c=+r.value;});
-    return {
+    return{
       ti:q.ti,tema:q.tema,
       q:document.getElementById("qt-"+i)?.value?.trim()||q.q,
       o:[0,1,2,3].map(j=>document.getElementById("oo-"+i+"-"+j)?.value?.trim()||q.o[j]),
@@ -502,7 +732,7 @@ async function saveQuiz(){
       max_intentos:3,duracion_min:0,mostrar_feedback:"inmediata",
       fecha_apertura:null,fecha_cierre:null,
       quiz_password:panelPass,
-      temas:topics.map(t=>({nombre:t.name,count:t.count})),
+      temas:topics.map(t=>({nombre:t.name,count:t.count,desc:t.desc,hasFile:!!t.fileObj,fileType:t.fileType})),
       questions:qs,
       created_at:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -519,12 +749,12 @@ function showSuccess(qid,total,passScore,pass){
   const pu=`${BASE_URL}/panel.html?id=${qid}`;
   document.getElementById("success-urls").innerHTML=`
     <div class="url-box">
-      <div class="url-label">URL del quiz (para estudiantes)</div>
+      <div class="url-lbl">URL del quiz (para estudiantes)</div>
       <div class="url-val"><a href="${qu}" target="_blank" style="color:var(--violet)">${qu}</a>
         <button class="copy-btn" onclick="cp('${qu}',this)">Copiar</button></div>
     </div>
     <div class="url-box">
-      <div class="url-label">URL del panel docente</div>
+      <div class="url-lbl">URL del panel docente</div>
       <div class="url-val"><a href="${pu}" target="_blank" style="color:var(--violet)">${pu}</a>
         <button class="copy-btn" onclick="cp('${pu}',this)">Copiar</button></div>
     </div>
