@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creador de Quiz · IA · FIRNT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--ink:#0d0b14;--paper:#f2f0eb;--paper2:#e5e0d5;--teal:#0fb5a0;--coral:#ff5d3b;--violet:#5b2be8;--gold:#ffb02e;--lime:#d6ff3f;--shadow:6px 6px 0 var(--ink)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;background-image:radial-gradient(var(--paper2) 1.4px,transparent 1.4px);background-size:22px 22px}
+h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;font-size:clamp(32px,5vw,64px);letter-spacing:-.02em}
+h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,28px);letter-spacing:-.01em}
+.eyebrow{font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:12px;display:inline-flex;align-items:center;gap:10px;color:var(--violet);margin-bottom:14px}
+.eyebrow::before{content:"";width:28px;height:3px;background:var(--teal)}
+.page-wrap{max-width:900px;margin:0 auto;padding:clamp(20px,4vw,60px)}
+.card{border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px;background:var(--paper);padding:clamp(20px,3vw,36px);margin-bottom:24px}
+.card-title{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--violet);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.card-title::before{content:"";display:block;width:20px;height:3px;background:var(--teal)}
+.step-num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--violet);color:#fff;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;align-items:center;justify-content:center;flex-shrink:0}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:4px}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#555}
+.field-input,.field-select{font-family:'Archivo',sans-serif;font-size:15px;border:3px solid var(--ink);background:var(--paper);padding:10px 14px;border-radius:4px;box-shadow:3px 3px 0 var(--ink);outline:none;width:100%;transition:.15s}
+.field-input:focus,.field-select:focus{border-color:var(--teal);box-shadow:3px 3px 0 var(--teal)}
+.field-hint{font-family:'Space Mono',monospace;font-size:10px;color:#888;line-height:1.5}
+.btn-main{display:inline-flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;background:var(--ink);color:var(--lime);border:3px solid var(--ink);padding:11px 22px;border-radius:99px;cursor:pointer;box-shadow:var(--shadow);transition:.15s}
+.btn-main:hover:not(:disabled){background:var(--violet);box-shadow:8px 8px 0 var(--ink)}
+.btn-main:disabled{opacity:.4;cursor:not-allowed}
+.btn-main.teal{background:var(--teal);color:var(--ink)}
+.btn-main.teal:hover:not(:disabled){background:var(--lime)}
+.btn-sm{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;border:2px solid var(--ink);padding:6px 14px;border-radius:99px;cursor:pointer;background:var(--paper);box-shadow:2px 2px 0 var(--ink);transition:.1s}
+.btn-sm:hover{background:var(--lime)}
+.btn-sm.danger{border-color:var(--coral);color:var(--coral)}
+.btn-sm.danger:hover{background:var(--coral);color:#fff}
+.key-status{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;margin-top:8px;min-height:18px}
+.key-status.ok{color:var(--teal)} .key-status.err{color:var(--coral)}
+.topics-list{display:flex;flex-direction:column;gap:10px}
+.topic-row{display:grid;grid-template-columns:1fr 130px 40px;gap:10px;align-items:end;padding:14px;border:2px solid var(--paper2);border-radius:4px;background:var(--paper)}
+.topic-row:hover{border-color:var(--ink)}
+.topic-badge{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:2px solid;display:inline-block;margin-bottom:6px}
+.t0{border-color:var(--teal);color:var(--teal)} .t1{border-color:var(--coral);color:var(--coral)}
+.t2{border-color:var(--gold);color:var(--gold)} .t3{border-color:var(--violet);color:var(--violet)}
+.t4{border-color:#777;color:#777}
+.count-ctrl{display:flex;align-items:center;gap:6px}
+.count-val{font-family:'Fraunces',serif;font-weight:900;font-size:26px;min-width:30px;text-align:center;line-height:1}
+.total-bar{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 18px;border:3px solid var(--ink);border-radius:4px;background:var(--lime)}
+.total-bar.warn{background:#ffd5cc;border-color:var(--coral)}
+.total-num{font-family:'Fraunces',serif;font-weight:900;font-size:36px;line-height:1}
+.total-lbl{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#555;margin-top:2px}
+.prog-wrap{margin-bottom:14px}
+.prog-header{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;margin-bottom:5px;display:flex;justify-content:space-between}
+.prog-track{height:8px;background:var(--paper2);border-radius:99px;overflow:hidden;border:2px solid var(--ink)}
+.prog-fill{height:100%;border-radius:99px;background:var(--teal);transition:width .4s}
+.prog-fill.done{background:var(--lime)} .prog-fill.err{background:var(--coral)}
+.q-card{border:3px solid var(--ink);border-radius:4px;padding:18px;margin-bottom:14px;background:var(--paper)}
+.q-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.q-num-tag{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#888}
+.edit-ta{font-family:'Archivo',sans-serif;font-size:15px;border:2px solid var(--paper2);background:var(--paper);padding:8px 12px;border-radius:4px;outline:none;width:100%;transition:.12s;resize:vertical}
+.edit-ta:focus{border-color:var(--teal)}
+.opts-grid{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.opt-row{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center}
+.opt-letter{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#888}
+.opt-inp{font-family:'Archivo',sans-serif;font-size:14px;border:2px solid var(--paper2);background:var(--paper);padding:6px 10px;border-radius:4px;outline:none;width:100%;transition:.12s}
+.opt-inp:focus{border-color:var(--teal)}
+.opt-radio-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;color:#555}
+.opt-radio-lbl input{accent-color:var(--teal)}
+.fb-wrap{background:#f0faf8;border:2px solid #d0e8e5;border-radius:4px;padding:10px 12px;margin-top:6px}
+.fb-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+.fb-ta{font-family:'Archivo',sans-serif;font-size:13px;border:none;background:transparent;outline:none;width:100%;resize:vertical;min-height:54px;color:#0a6b60;line-height:1.5}
+.alert{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:11px 15px;border-radius:4px;margin-bottom:14px;border:3px solid var(--ink);line-height:1.6}
+.alert.info{background:var(--lime)} .alert.warn{background:var(--gold)} .alert.err{background:#ffd5cc;color:var(--coral);border-color:var(--coral)} .alert.ok{background:#d6fff9;border-color:var(--teal)}
+.url-box{border:3px solid var(--ink);border-radius:4px;padding:14px 18px;background:var(--paper2);margin-bottom:12px}
+.url-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:5px}
+.url-val{font-family:'Space Mono',monospace;font-size:12px;word-break:break-all;color:var(--ink)}
+.copy-btn{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:var(--teal);color:var(--ink);border:2px solid var(--ink);padding:3px 10px;border-radius:99px;cursor:pointer;margin-left:8px;vertical-align:middle}
+.copy-btn:hover{background:var(--lime)}
+.hidden{display:none!important}
+.sep-tema{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.14em;border-bottom:3px solid var(--ink);padding-bottom:8px;margin:20px 0 12px}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:32px;padding-bottom:24px;border-bottom:3px solid var(--ink)">
+    <div class="eyebrow">FIRNT · Herramienta Docente · Generador IA</div>
+    <h1>Creador de<br><span style="color:var(--teal)">Quiz Automático</span></h1>
+    <p style="margin-top:12px;font-family:'Space Mono',monospace;font-size:12px;color:#666;max-width:54ch;line-height:1.9">
+      Define materia, temas y cantidad de preguntas por tema.<br>
+      Claude IA genera el quiz completo · 10 a 30 preguntas · 1 a 5 temas.
+    </p>
+  </div>
+
+  <!-- PASO 1: API KEY -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">1</span>Clave API de Claude</div>
+    <p style="font-size:14px;margin-bottom:14px;line-height:1.7;color:#555;max-width:56ch">
+      Se guarda solo en tu navegador (localStorage). Nunca se sube al servidor ni al repositorio.
+      Obtén tu key en <strong>console.anthropic.com</strong>.
+    </p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="field-group" style="flex:1;min-width:260px">
+        <label class="field-label" for="inp-apikey">Anthropic API Key</label>
+        <input class="field-input" id="inp-apikey" type="password" placeholder="sk-ant-api03-…">
+      </div>
+      <button class="btn-sm" onclick="saveApiKey()">Guardar</button>
+      <button class="btn-sm" onclick="clearApiKey()" style="border-color:#bbb;color:#999">Borrar</button>
+    </div>
+    <div class="key-status" id="key-status"></div>
+  </div>
+
+  <!-- PASO 2: METADATA -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">2</span>Datos del quiz</div>
+    <div class="field-grid">
+      <div class="field-group">
+        <label class="field-label" for="inp-materia">Materia</label>
+        <input class="field-input" id="inp-materia" type="text" placeholder="Modelación y Simulación…" oninput="suggestId()">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-sigla">Sigla</label>
+        <input class="field-input" id="inp-sigla" type="text" placeholder="Mat216" oninput="suggestId()">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-mesa">Mesa / Evaluación</label>
+        <input class="field-input" id="inp-mesa" type="text" placeholder="Mesa 3" oninput="suggestId()">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-docente">Docente</label>
+        <input class="field-input" id="inp-docente" type="text" placeholder="Ing. Robert Farfán" value="Ing. Robert Farfán">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-facultad">Facultad</label>
+        <input class="field-input" id="inp-facultad" type="text" placeholder="FIRNT" value="FIRNT">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-quiz-id">ID del quiz <span style="color:var(--coral)">*</span></label>
+        <input class="field-input" id="inp-quiz-id" type="text" placeholder="mat216_m3" style="font-family:'Space Mono',monospace">
+        <span class="field-hint">Solo a-z, 0-9, guión bajo. Se usa en la URL.</span>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-pass-pct">Aprobación (%)</label>
+        <input class="field-input" id="inp-pass-pct" type="number" value="60" min="1" max="100" step="5">
+        <span class="field-hint">60% = al menos 60% de respuestas correctas</span>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="inp-panel-pass">Contraseña panel docente</label>
+        <input class="field-input" id="inp-panel-pass" type="text" value="docente2026">
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: TEMAS -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">3</span>Temas y cantidad de preguntas</div>
+    <p style="font-size:14px;margin-bottom:14px;line-height:1.6;color:#555;max-width:56ch">
+      1 a 5 temas. Ajusta cuántas preguntas genera la IA por tema. Total válido: 10 a 30 preguntas.
+    </p>
+    <div class="topics-list" id="topics-list"></div>
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+      <button class="btn-sm" id="btn-add" onclick="addTopic()">+ Agregar tema</button>
+      <span id="max-hint" class="hidden" style="font-family:'Space Mono',monospace;font-size:11px;color:#888">Máximo 5 temas.</span>
+    </div>
+    <div class="total-bar" id="total-bar">
+      <div>
+        <div class="total-num" id="total-num">—</div>
+        <div class="total-lbl">preguntas en total</div>
+      </div>
+      <div id="total-msg" style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-align:right"></div>
+    </div>
+  </div>
+
+  <!-- PASO 4: GENERAR -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">4</span>Generar preguntas con IA</div>
+    <div id="gen-alerts"></div>
+    <button class="btn-main teal" id="btn-gen" onclick="startGen()">⚡ Generar preguntas con Claude</button>
+    <div id="gen-progress" class="hidden" style="margin-top:22px">
+      <p style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--violet);margin-bottom:14px;letter-spacing:.1em;text-transform:uppercase">Generando…</p>
+      <div id="prog-bars"></div>
+    </div>
+  </div>
+
+  <!-- PASO 5: PREVIEW -->
+  <div class="card hidden" id="card-preview">
+    <div class="card-title"><span class="step-num">5</span>Revisar y editar preguntas</div>
+    <div class="alert info" id="preview-msg">Revisa las preguntas. Puedes editar texto, opciones, respuesta correcta y feedback.</div>
+    <div id="questions-wrap"></div>
+  </div>
+
+  <!-- PASO 6: GUARDAR -->
+  <div class="card hidden" id="card-save">
+    <div class="card-title"><span class="step-num">6</span>Guardar y publicar</div>
+    <div id="save-alerts"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn-main" id="btn-save" onclick="saveQuiz()">↑ Guardar en Firestore</button>
+      <button class="btn-sm" onclick="regenAll()">↺ Regenerar todo</button>
+    </div>
+  </div>
+
+  <!-- PASO 7: ÉXITO -->
+  <div class="card hidden" id="card-ok">
+    <div class="card-title"><span class="step-num">7</span>Quiz publicado</div>
+    <div class="alert ok">✔ Quiz guardado correctamente en Firestore.</div>
+    <div id="success-urls"></div>
+    <div style="margin-top:18px">
+      <button class="btn-sm" onclick="createAnother()">+ Crear otro quiz</button>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+const FIREBASE_CONFIG={apiKey:"AIzaSyBGVUbqNeNBth3d2QEOqsvA1dEW2ovKeg0",authDomain:"quiz-unidad5-c86d8.firebaseapp.com",projectId:"quiz-unidad5-c86d8",storageBucket:"quiz-unidad5-c86d8.firebasestorage.app",messagingSenderId:"226974496351",appId:"1:226974496351:web:a93c597cf3d398a1d24dea"};
+const BASE_URL="https://robert50farfan-source.github.io/quizsimulacion";
+const MODEL="claude-haiku-4-5-20251001";
+const LETTERS=["A","B","C","D"];
+const T_COLORS=["teal","coral","gold","violet","ink"];
+
+let db=null;
+try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.firestore();}catch(e){}
+
+let apiKey=localStorage.getItem("creator_api_key")||"";
+let topics=[{name:"",count:5}];
+let generated=[];
+
+window.addEventListener("DOMContentLoaded",()=>{
+  if(apiKey){
+    document.getElementById("inp-apikey").value="•".repeat(Math.min(apiKey.length,28));
+    setKeyStatus("✔ API key configurada.",true);
+  }
+  renderTopics();
+});
+
+// ── API KEY ──────────────────────────────────────────────────────────
+function saveApiKey(){
+  const v=document.getElementById("inp-apikey").value.trim();
+  if(!v||v.startsWith("•")){setKeyStatus("Ingresa una key válida.",false);return;}
+  apiKey=v;localStorage.setItem("creator_api_key",apiKey);
+  document.getElementById("inp-apikey").value="•".repeat(Math.min(apiKey.length,28));
+  setKeyStatus("✔ Guardada en tu navegador.",true);
+}
+function clearApiKey(){
+  apiKey="";localStorage.removeItem("creator_api_key");
+  document.getElementById("inp-apikey").value="";
+  setKeyStatus("Key eliminada.",false);
+}
+function setKeyStatus(msg,ok){
+  const el=document.getElementById("key-status");
+  el.className="key-status "+(ok?"ok":"err");el.textContent=msg;
+}
+
+// ── ID SUGGESTION ────────────────────────────────────────────────────
+function suggestId(){
+  const s=document.getElementById("inp-sigla").value.toLowerCase().replace(/[^a-z0-9]/g,"");
+  const m=document.getElementById("inp-mesa").value.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+  if(s&&m)document.getElementById("inp-quiz-id").value=s+"_"+m;
+}
+
+// ── TOPICS ───────────────────────────────────────────────────────────
+function renderTopics(){
+  document.getElementById("topics-list").innerHTML=topics.map((t,i)=>`
+    <div class="topic-row">
+      <div>
+        <span class="topic-badge t${i}">Tema ${i+1}</span>
+        <input class="field-input" style="margin:0" type="text"
+          placeholder="Nombre del tema (ej. Fundamentos de Modelación)"
+          value="${esc(t.name)}" oninput="topics[${i}].name=this.value">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Preguntas</label>
+        <div class="count-ctrl">
+          <button class="btn-sm" onclick="chgCount(${i},-1)" style="padding:4px 10px">−</button>
+          <span class="count-val" id="cv-${i}">${t.count}</span>
+          <button class="btn-sm" onclick="chgCount(${i},+1)" style="padding:4px 10px">+</button>
+        </div>
+      </div>
+      <div>${topics.length>1?`<button class="btn-sm danger" onclick="rmTopic(${i})">✕</button>`:`<span style="width:36px;display:inline-block"></span>`}</div>
+    </div>`).join("");
+  document.getElementById("btn-add").classList.toggle("hidden",topics.length>=5);
+  document.getElementById("max-hint").classList.toggle("hidden",topics.length<5);
+  updateTotal();
+}
+function addTopic(){if(topics.length>=5)return;topics.push({name:"",count:5});renderTopics();}
+function rmTopic(i){if(topics.length<=1)return;topics.splice(i,1);renderTopics();}
+function chgCount(i,d){
+  topics[i].count=Math.max(1,Math.min(20,topics[i].count+d));
+  document.getElementById("cv-"+i).textContent=topics[i].count;
+  updateTotal();
+}
+function updateTotal(){
+  const tot=topics.reduce((s,t)=>s+t.count,0);
+  const bar=document.getElementById("total-bar");
+  document.getElementById("total-num").textContent=tot;
+  if(tot<10){bar.className="total-bar warn";document.getElementById("total-msg").innerHTML=`<span style="color:var(--coral)">Mínimo 10 preguntas.</span>`;}
+  else if(tot>30){bar.className="total-bar warn";document.getElementById("total-msg").innerHTML=`<span style="color:var(--coral)">Máximo 30 preguntas.</span>`;}
+  else{bar.className="total-bar";document.getElementById("total-msg").innerHTML=`<span style="color:#555">✔ Rango válido</span>`;}
+}
+
+// ── VALIDATION ───────────────────────────────────────────────────────
+function validate(){
+  const errs=[];
+  if(!apiKey)errs.push("Configura tu API key de Claude (Paso 1).");
+  if(!document.getElementById("inp-materia").value.trim())errs.push("Ingresa el nombre de la materia.");
+  const id=document.getElementById("inp-quiz-id").value.trim();
+  if(!id)errs.push("Ingresa el ID del quiz.");
+  if(id&&!/^[a-z0-9_]+$/.test(id))errs.push("El ID solo acepta letras minúsculas, números y guiones bajos.");
+  topics.forEach((t,i)=>{if(!t.name.trim())errs.push(`Ingresa el nombre del Tema ${i+1}.`);});
+  const tot=topics.reduce((s,t)=>s+t.count,0);
+  if(tot<10||tot>30)errs.push(`Total de preguntas debe ser entre 10 y 30 (actualmente: ${tot}).`);
+  return errs;
+}
+
+// ── GENERATION ───────────────────────────────────────────────────────
+async function startGen(){
+  const errs=validate();
+  const ab=document.getElementById("gen-alerts");ab.innerHTML="";
+  if(errs.length){ab.innerHTML=`<div class="alert err">${errs.map(e=>"▸ "+e).join("<br>")}</div>`;return;}
+  const materia=document.getElementById("inp-materia").value.trim();
+  const sigla=document.getElementById("inp-sigla").value.trim();
+  const mesa=document.getElementById("inp-mesa").value.trim();
+
+  const btn=document.getElementById("btn-gen");
+  btn.disabled=true;btn.textContent="Generando…";
+  document.getElementById("gen-progress").classList.remove("hidden");
+  document.getElementById("card-preview").classList.add("hidden");
+  document.getElementById("card-save").classList.add("hidden");
+  document.getElementById("card-ok").classList.add("hidden");
+  generated=[];
+
+  document.getElementById("prog-bars").innerHTML=topics.map((t,i)=>`
+    <div class="prog-wrap">
+      <div class="prog-header">
+        <span>Tema ${i+1}: ${esc(t.name)} (${t.count} preg.)</span>
+        <span id="ps-${i}" style="color:#888">Pendiente</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="pf-${i}" style="width:0%"></div></div>
+    </div>`).join("");
+
+  let allOk=true;
+  for(let i=0;i<topics.length;i++){
+    setProg(i,30,"Consultando IA…","");
+    try{
+      const qs=await genTopic(topics[i],i,materia,sigla,mesa);
+      generated.push(...qs);
+      setProg(i,100,`✔ ${qs.length} preguntas generadas`,"done");
+    }catch(e){
+      setProg(i,100,"⚠ "+e.message,"err");allOk=false;
+    }
+  }
+  btn.disabled=false;btn.textContent="⚡ Generar preguntas con Claude";
+  if(generated.length>0){
+    renderPreview();
+    document.getElementById("card-preview").classList.remove("hidden");
+    document.getElementById("card-save").classList.remove("hidden");
+    document.getElementById("card-preview").scrollIntoView({behavior:"smooth"});
+  }
+  if(!allOk)ab.innerHTML=`<div class="alert warn">Algunos temas tuvieron errores. Revisa el resultado y regenera si es necesario.</div>`;
+}
+function setProg(i,pct,lbl,state){
+  document.getElementById("pf-"+i).style.width=pct+"%";
+  document.getElementById("pf-"+i).className="prog-fill"+(state?" "+state:"");
+  const s=document.getElementById("ps-"+i);
+  s.textContent=lbl;
+  s.style.color=state==="done"?"var(--teal)":state==="err"?"var(--coral)":"var(--gold)";
+}
+
+async function genTopic(topic,idx,materia,sigla,mesa){
+  const prompt=`Genera exactamente ${topic.count} preguntas de selección múltiple sobre el tema "${topic.name}" para la materia "${materia}"${sigla?" ("+sigla+")":""}${mesa?" — "+mesa:""}.
+
+REQUISITOS:
+- Exactamente 4 opciones (A, B, C, D), solo una correcta
+- Nivel universitario: mezcla definición, comparación, aplicación, análisis
+- El feedback explica POR QUÉ la respuesta es correcta y por qué las demás no (2-4 oraciones en español)
+
+Responde ÚNICAMENTE con JSON array válido, sin bloques markdown, sin texto adicional:
+[{"q":"texto","o":["A","B","C","D"],"c":0,"fb":"feedback"}]`;
+
+  const text=await callClaude(prompt);
+  const arr=parseJ(text);
+  return arr.map(q=>({
+    ti:idx,tema:topic.name,
+    q:q.q||"",
+    o:Array.isArray(q.o)?q.o.slice(0,4).map(String):["","","",""],
+    c:typeof q.c==="number"?Math.min(3,Math.max(0,q.c)):0,
+    fb:q.fb||""
+  }));
+}
+
+async function callClaude(prompt){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"content-type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:MODEL,max_tokens:4096,
+      system:"Eres un docente universitario experto. Generas preguntas de evaluación de alta calidad. Respondes ÚNICAMENTE con JSON válido, sin texto adicional, sin bloques de código markdown.",
+      messages:[{role:"user",content:prompt}]})
+  });
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||"HTTP "+res.status);}
+  const d=await res.json();return d.content[0].text;
+}
+function parseJ(txt){
+  const c=txt.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
+  try{return JSON.parse(c);}catch(e){
+    const m=c.match(/\[[\s\S]*\]/);
+    if(m){try{return JSON.parse(m[0]);}catch(e2){}}
+    throw new Error("La IA no devolvió JSON válido. Intenta de nuevo.");
+  }
+}
+
+// ── PREVIEW ──────────────────────────────────────────────────────────
+function renderPreview(){
+  let html="",lastTi=-1;
+  generated.forEach((q,i)=>{
+    if(q.ti!==lastTi){
+      html+=`<div class="sep-tema" style="color:var(--${T_COLORS[q.ti]})">Tema ${q.ti+1} · ${esc(q.tema)}</div>`;
+      lastTi=q.ti;
+    }
+    html+=`
+    <div class="q-card" id="qc-${i}">
+      <div class="q-card-header">
+        <div class="q-num-tag">Preg. ${i+1} · Tema ${q.ti+1}</div>
+        <button class="btn-sm danger" onclick="delQ(${i})">✕ Eliminar</button>
+      </div>
+      <textarea class="edit-ta" id="qt-${i}" style="font-size:15px;font-weight:700;min-height:56px">${esc(q.q)}</textarea>
+      <div class="opts-grid">
+        ${q.o.map((o,j)=>`
+          <div class="opt-row">
+            <span class="opt-letter">${LETTERS[j]}</span>
+            <input class="opt-inp" id="oo-${i}-${j}" type="text" value="${esc(o)}">
+            <label class="opt-radio-lbl"><input type="radio" name="cr-${i}" value="${j}" ${q.c===j?"checked":""}> Correcta</label>
+          </div>`).join("")}
+      </div>
+      <div class="fb-wrap">
+        <div class="fb-label">Feedback</div>
+        <textarea class="fb-ta" id="qf-${i}">${esc(q.fb)}</textarea>
+      </div>
+    </div>`;
+  });
+  document.getElementById("questions-wrap").innerHTML=html;
+  document.getElementById("preview-msg").textContent=`${generated.length} preguntas generadas. Edita lo que necesites antes de guardar.`;
+}
+function delQ(i){
+  if(!confirm("¿Eliminar esta pregunta?"))return;
+  generated.splice(i,1);
+  renderPreview();
+  if(generated.length===0){
+    document.getElementById("card-preview").classList.add("hidden");
+    document.getElementById("card-save").classList.add("hidden");
+  }
+}
+function regenAll(){
+  document.getElementById("card-preview").classList.add("hidden");
+  document.getElementById("card-save").classList.add("hidden");
+  startGen();
+}
+
+// ── COLLECT FROM FORM ─────────────────────────────────────────────────
+function collectQs(){
+  return generated.map((q,i)=>{
+    const radios=document.querySelectorAll(`input[name="cr-${i}"]`);
+    let c=q.c;radios.forEach(r=>{if(r.checked)c=+r.value;});
+    return {
+      ti:q.ti,tema:q.tema,
+      q:document.getElementById("qt-"+i)?.value?.trim()||q.q,
+      o:[0,1,2,3].map(j=>document.getElementById("oo-"+i+"-"+j)?.value?.trim()||q.o[j]),
+      c,fb:document.getElementById("qf-"+i)?.value?.trim()||q.fb
+    };
+  });
+}
+
+// ── SAVE ─────────────────────────────────────────────────────────────
+async function saveQuiz(){
+  if(!db){setSaveAlert("⚠ Firebase no disponible.","err");return;}
+  const qid=document.getElementById("inp-quiz-id").value.trim();
+  const materia=document.getElementById("inp-materia").value.trim();
+  const sigla=document.getElementById("inp-sigla").value.trim();
+  const mesa=document.getElementById("inp-mesa").value.trim();
+  const docente=document.getElementById("inp-docente").value.trim();
+  const facultad=document.getElementById("inp-facultad").value.trim();
+  const passPct=parseInt(document.getElementById("inp-pass-pct").value)||60;
+  const panelPass=document.getElementById("inp-panel-pass").value.trim()||"docente2026";
+  const qs=collectQs();
+  const total=qs.length;
+  const passScore=Math.max(1,Math.round(total*passPct/100));
+
+  const btn=document.getElementById("btn-save");
+  btn.disabled=true;btn.textContent="Guardando…";setSaveAlert("","");
+  try{
+    const ex=await db.collection("quizzes").doc(qid).get();
+    if(ex.exists&&!confirm(`Ya existe el quiz "${qid}". ¿Sobreescribir?`)){
+      btn.disabled=false;btn.textContent="↑ Guardar en Firestore";return;
+    }
+    await db.collection("quizzes").doc(qid).set({
+      titulo:`${mesa||"Evaluación"} · ${sigla||materia}`,
+      materia,sigla,mesa,docente,facultad,
+      pass_score:passScore,pass_pct:passPct,total,
+      max_intentos:3,duracion_min:0,mostrar_feedback:"inmediata",
+      fecha_apertura:null,fecha_cierre:null,
+      quiz_password:panelPass,
+      temas:topics.map(t=>({nombre:t.name,count:t.count})),
+      questions:qs,
+      created_at:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showSuccess(qid,total,passScore,panelPass);
+    document.getElementById("card-ok").classList.remove("hidden");
+    document.getElementById("card-ok").scrollIntoView({behavior:"smooth"});
+  }catch(e){setSaveAlert("⚠ Error: "+e.message,"err");}
+  btn.disabled=false;btn.textContent="↑ Guardar en Firestore";
+}
+function setSaveAlert(msg,type){document.getElementById("save-alerts").innerHTML=msg?`<div class="alert ${type}">${msg}</div>`:""}
+
+function showSuccess(qid,total,passScore,pass){
+  const qu=`${BASE_URL}/quiz.html?id=${qid}`;
+  const pu=`${BASE_URL}/panel.html?id=${qid}`;
+  document.getElementById("success-urls").innerHTML=`
+    <div class="url-box">
+      <div class="url-label">URL del quiz (para estudiantes)</div>
+      <div class="url-val"><a href="${qu}" target="_blank" style="color:var(--violet)">${qu}</a>
+        <button class="copy-btn" onclick="cp('${qu}',this)">Copiar</button></div>
+    </div>
+    <div class="url-box">
+      <div class="url-label">URL del panel docente</div>
+      <div class="url-val"><a href="${pu}" target="_blank" style="color:var(--violet)">${pu}</a>
+        <button class="copy-btn" onclick="cp('${pu}',this)">Copiar</button></div>
+    </div>
+    <div style="margin-top:14px;font-family:'Space Mono',monospace;font-size:12px;line-height:2;color:#555">
+      ID: <strong>${qid}</strong> · Preguntas: <strong>${total}</strong> ·
+      Aprobación: <strong>${passScore}/${total}</strong> ·
+      Contraseña panel: <strong>${pass}</strong>
+    </div>`;
+}
+function cp(txt,btn){navigator.clipboard.writeText(txt).then(()=>{btn.textContent="✔ Copiado";setTimeout(()=>btn.textContent="Copiar",2000);});}
+
+function createAnother(){
+  ["card-ok","card-preview","card-save"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+  document.getElementById("gen-progress").classList.add("hidden");
+  document.getElementById("gen-alerts").innerHTML="";
+  document.getElementById("inp-quiz-id").value="";
+  generated=[];
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+</script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Docente · FIRNT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--ink:#0d0b14;--paper:#f2f0eb;--paper2:#e5e0d5;--teal:#0fb5a0;--coral:#ff5d3b;--violet:#5b2be8;--gold:#ffb02e;--lime:#d6ff3f;--shadow:6px 6px 0 var(--ink)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;background-image:radial-gradient(var(--paper2) 1.4px,transparent 1.4px);background-size:22px 22px}
+h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;font-size:clamp(34px,5.5vw,64px);letter-spacing:-.02em}
+h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(18px,2.5vw,30px);letter-spacing:-.01em;margin-bottom:18px}
+.eyebrow{font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:12px;display:inline-flex;align-items:center;gap:10px;color:var(--violet);margin-bottom:14px}
+.eyebrow::before{content:"";width:28px;height:3px;background:var(--teal)}
+
+/* Loading / Error */
+#loading,#error-screen{display:flex;flex-direction:column;justify-content:center;min-height:100vh;padding:clamp(28px,6vw,80px);background:var(--ink);color:var(--paper)}
+.spin{width:36px;height:36px;border:4px solid rgba(255,255,255,.15);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Login */
+#login{display:none;flex-direction:column;justify-content:center;min-height:100vh;padding:clamp(28px,6vw,80px)}
+#login .inner{max-width:420px}
+.field-group{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.field-label{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet)}
+.field-input{font-family:'Archivo',sans-serif;font-size:clamp(15px,1.5vw,18px);border:3px solid var(--ink);background:var(--paper);padding:12px 16px;border-radius:4px;box-shadow:4px 4px 0 var(--ink);outline:none;width:100%;transition:.15s}
+.field-input:focus{border-color:var(--teal);box-shadow:4px 4px 0 var(--teal)}
+.login-err{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--coral);margin-top:-10px;margin-bottom:14px;display:none}
+.login-err.show{display:block}
+.btn-main{display:inline-flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;background:var(--ink);color:var(--lime);border:3px solid var(--ink);padding:12px 24px;border-radius:99px;cursor:pointer;box-shadow:var(--shadow);transition:.15s}
+.btn-main:hover{background:var(--teal);box-shadow:8px 8px 0 var(--ink)}
+
+/* Panel */
+#panel{display:none;padding:clamp(22px,4.5vw,60px)}
+.header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px}
+.logout-btn{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;background:none;border:2px solid var(--ink);padding:6px 15px;border-radius:99px;cursor:pointer;transition:.1s}
+.logout-btn:hover{background:var(--ink);color:var(--lime)}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:30px}
+.stat-card{border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px;padding:18px;text-align:center}
+.stat-card.c-lime{background:var(--lime)} .stat-card.c-teal{background:var(--teal);color:#fff}
+.stat-card.c-violet{background:var(--violet);color:#fff} .stat-card.c-coral{background:var(--coral);color:#fff}
+.stat-card.c-gold{background:var(--gold)}
+.stat-num{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(32px,5vw,52px);line-height:1}
+.stat-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:6px}
+
+/* Config panel */
+.cfg-panel{border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px;background:var(--paper);margin-bottom:22px;overflow:hidden}
+.cfg-row{display:flex;flex-wrap:wrap;border-bottom:2px solid var(--paper2)}
+.cfg-row:last-child{border-bottom:none}
+.cfg-item{flex:1;min-width:170px;padding:14px 20px;border-right:2px solid var(--paper2);display:flex;flex-direction:column;gap:7px}
+.cfg-item:last-child{border-right:none}
+.cfg-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--violet)}
+.cfg-ctrl{display:flex;align-items:center;gap:9px}
+.cfg-val{font-family:'Fraunces',serif;font-weight:900;font-size:28px;min-width:30px;text-align:center;line-height:1}
+.cfg-hint{font-family:'Space Mono',monospace;font-size:10px;color:#888}
+.cfg-save-st{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--teal);min-height:15px}
+.btn-sm{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;border:2px solid var(--ink);padding:7px 15px;border-radius:99px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:.1s;background:var(--paper)}
+.btn-sm:hover{background:var(--lime);transform:translateY(-1px)}
+.btn-sm.active{background:var(--violet);color:#fff;box-shadow:2px 2px 0 var(--ink)}
+.dt-input{font-family:'Space Mono',monospace;font-size:13px;border:3px solid var(--ink);background:var(--paper);padding:8px 11px;border-radius:4px;box-shadow:3px 3px 0 var(--ink);outline:none;width:100%;transition:.15s}
+.dt-input:focus{border-color:var(--teal);box-shadow:3px 3px 0 var(--teal)}
+.status-badge{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;padding:6px 14px;border-radius:99px;border:3px solid var(--ink);display:inline-block}
+.status-badge.open{background:var(--lime)} .status-badge.scheduled{background:var(--gold)} .status-badge.closed{background:#ffd5cc;color:var(--coral)} .status-badge.unlimited{background:var(--paper2)}
+
+/* Toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;align-items:center}
+.search-inp{font-family:'Space Mono',monospace;font-size:13px;border:3px solid var(--ink);background:var(--paper);padding:8px 15px;border-radius:99px;box-shadow:3px 3px 0 var(--ink);outline:none;min-width:200px}
+.search-inp:focus{border-color:var(--teal)}
+.toolbar-right{margin-left:auto;display:flex;gap:8px}
+
+/* Table */
+.table-wrap{overflow-x:auto;border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:clamp(13px,1.2vw,15px)}
+thead{background:var(--ink);color:var(--lime)}
+thead th{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:13px 15px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{background:#2a2735}
+thead th.asc::after{content:" ↑"} thead th.desc::after{content:" ↓"}
+tbody tr{border-bottom:2px solid var(--paper2);transition:background .1s}
+tbody tr:last-child{border-bottom:none} tbody tr:hover{background:var(--paper2)}
+tbody td{padding:12px 15px;vertical-align:middle}
+.td-name{font-weight:700} .td-mono{font-family:'Space Mono',monospace;font-size:12px;color:#666} .td-date{font-family:'Space Mono',monospace;font-size:12px;color:#666;white-space:nowrap}
+.score-pill{display:inline-block;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;padding:3px 11px;border-radius:99px;border:2px solid var(--ink)}
+.pill-p{background:var(--lime)} .pill-g{background:var(--teal);color:#fff} .pill-r{background:var(--gold)} .pill-l{background:#ffd5cc}
+.badge-apr{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;border:2px solid var(--teal);background:var(--lime);color:var(--ink)}
+.badge-rep{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;border:2px solid var(--coral);background:#ffd5cc;color:var(--coral)}
+.det-btn{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:none;border:2px solid var(--ink);padding:3px 9px;border-radius:99px;cursor:pointer;transition:.1s}
+.det-btn:hover{background:var(--ink);color:var(--lime)}
+.empty-st{text-align:center;padding:54px 20px;font-family:'Space Mono',monospace;font-size:13px;color:#888}
+.loading-ring{display:inline-block;width:28px;height:28px;border:4px solid var(--paper2);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+
+/* Pager */
+.pager{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:16px;font-family:'Space Mono',monospace;font-size:13px}
+.pg-btn{width:34px;height:34px;border:3px solid var(--ink);border-radius:50%;background:var(--paper);cursor:pointer;font-weight:700;font-size:13px;box-shadow:3px 3px 0 var(--ink);transition:.1s}
+.pg-btn:hover:not(:disabled){background:var(--lime)} .pg-btn:disabled{opacity:.3;cursor:default;box-shadow:none}
+.pg-info{min-width:80px;text-align:center}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,11,20,.55);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--paper);border:3px solid var(--ink);box-shadow:var(--shadow);border-radius:4px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:30px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.modal h3{font-family:'Fraunces',serif;font-weight:900;font-size:22px;margin-bottom:3px}
+.modal-meta{font-family:'Space Mono',monospace;font-size:12px;color:#666;margin-bottom:22px;line-height:1.8}
+.resp-row{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:2px solid var(--paper2);font-size:14px;line-height:1.4}
+.resp-row:last-child{border-bottom:none}
+.resp-icon{flex:none;font-size:15px} .resp-num{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--violet);flex:none;min-width:22px}
+.resp-tema{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-top:1px}
+.modal-close{margin-top:22px;font-family:'Space Mono',monospace;font-weight:700;font-size:12px;background:var(--ink);color:var(--lime);border:3px solid var(--ink);padding:9px 20px;border-radius:99px;cursor:pointer;box-shadow:var(--shadow)}
+.modal-close:hover{background:var(--teal)}
+.reset-btn{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;background:none;border:2px solid var(--coral);color:var(--coral);padding:4px 11px;border-radius:99px;cursor:pointer;transition:.1s;margin-top:14px}
+.reset-btn:hover{background:var(--coral);color:#fff}
+</style>
+</head>
+<body>
+
+<section id="loading">
+  <div class="spin"></div>
+  <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:rgba(255,255,255,.55)">Cargando panel…</div>
+</section>
+
+<section id="error-screen">
+  <div style="max-width:460px">
+    <div class="eyebrow" style="color:var(--coral)">Error</div>
+    <h1 style="color:var(--coral);margin-bottom:18px">Quiz no<br>encontrado</h1>
+    <p style="font-family:'Space Mono',monospace;font-size:13px;color:rgba(255,255,255,.6);line-height:1.8" id="err-msg">El quiz solicitado no existe.</p>
+  </div>
+</section>
+
+<section id="login">
+  <div class="inner">
+    <div class="eyebrow" id="login-eyebrow">Panel Docente</div>
+    <h1 style="margin-bottom:14px">Resultados<br>de Estudiantes</h1>
+    <p id="login-desc" style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;line-height:1.8;color:#555;margin-bottom:26px"></p>
+    <div class="field-group">
+      <label class="field-label" for="inp-pass">Contraseña</label>
+      <input class="field-input" id="inp-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="login-err">Contraseña incorrecta.</div>
+    <button class="btn-main" onclick="doLogin()">Acceder →</button>
+  </div>
+</section>
+
+<section id="panel">
+  <div class="header">
+    <div>
+      <div class="eyebrow" id="panel-eyebrow">Panel Docente</div>
+      <h1>Resultados</h1>
+      <p style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#888;line-height:1.7;margin-top:5px" id="panel-sub"></p>
+    </div>
+    <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card c-lime"><div class="stat-num" id="st-total">—</div><div class="stat-lbl">Entregas</div></div>
+    <div class="stat-card c-teal"><div class="stat-num" id="st-prom">—</div><div class="stat-lbl">Promedio</div></div>
+    <div class="stat-card c-violet"><div class="stat-num" id="st-apr">—</div><div class="stat-lbl" id="st-apr-lbl">Aprobados</div></div>
+    <div class="stat-card c-coral"><div class="stat-num" id="st-rep">—</div><div class="stat-lbl">Reprobados</div></div>
+    <div class="stat-card c-gold"><div class="stat-num" id="st-max">—</div><div class="stat-lbl">Máximo</div></div>
+  </div>
+
+  <div class="cfg-panel">
+    <div class="cfg-row">
+      <div class="cfg-item">
+        <span class="cfg-lbl">Estado</span>
+        <span class="status-badge unlimited" id="cfg-status">—</span>
+        <span class="cfg-save-st" id="cfg-save-st"></span>
+      </div>
+      <div class="cfg-item">
+        <span class="cfg-lbl">Intentos por estudiante</span>
+        <div class="cfg-ctrl">
+          <button class="btn-sm" onclick="updCfg('max_intentos',maxInt-1)">−</button>
+          <span class="cfg-val" id="cfg-max">3</span>
+          <button class="btn-sm" onclick="updCfg('max_intentos',maxInt+1)">+</button>
+        </div>
+        <span class="cfg-hint">0 = sin límite</span>
+      </div>
+      <div class="cfg-item">
+        <span class="cfg-lbl">Duración (min)</span>
+        <div class="cfg-ctrl">
+          <button class="btn-sm" onclick="updCfg('duracion_min',durMin-5)">−5</button>
+          <span class="cfg-val" id="cfg-dur">0</span>
+          <button class="btn-sm" onclick="updCfg('duracion_min',durMin+5)">+5</button>
+        </div>
+        <span class="cfg-hint">0 = sin temporizador</span>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-item">
+        <span class="cfg-lbl">Retroalimentación</span>
+        <div class="cfg-ctrl" style="gap:7px;flex-wrap:wrap">
+          <button class="btn-sm active" id="fb-inm" onclick="updFb('inmediata')">✔ Inmediata</button>
+          <button class="btn-sm" id="fb-fin" onclick="updFb('finalizar')">Al finalizar</button>
+        </div>
+        <span class="cfg-hint" id="fb-hint">El estudiante ve si acertó en cada pregunta</span>
+      </div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-item">
+        <label class="cfg-lbl" for="cfg-ap">Apertura</label>
+        <input class="dt-input" id="cfg-ap" type="datetime-local" onchange="updDate('fecha_apertura',this.value)">
+        <span class="cfg-hint">Vacío = siempre disponible</span>
+      </div>
+      <div class="cfg-item">
+        <label class="cfg-lbl" for="cfg-ci">Cierre</label>
+        <input class="dt-input" id="cfg-ci" type="datetime-local" onchange="updDate('fecha_cierre',this.value)">
+        <span class="cfg-hint">Vacío = sin cierre</span>
+      </div>
+      <div class="cfg-item" style="justify-content:flex-end">
+        <button class="btn-sm" onclick="clearDates()">✕ Borrar fechas</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search-inp" id="search-inp" type="text" placeholder="Buscar por nombre o cédula…" oninput="applyFilters()">
+    <button class="btn-sm active" id="f-all" onclick="setFilter('all')">Todos</button>
+    <button class="btn-sm" id="f-apr" onclick="setFilter('apr')">Aprobados</button>
+    <button class="btn-sm" id="f-rep" onclick="setFilter('rep')">Reprobados</button>
+    <div class="toolbar-right">
+      <button class="btn-sm" onclick="loadData()">↺ Actualizar</button>
+      <button class="btn-sm" onclick="exportCSV()">⬇ CSV</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th onclick="sortBy('idx')" data-col="idx">#</th>
+        <th onclick="sortBy('nombre')" data-col="nombre">Nombre</th>
+        <th onclick="sortBy('cedula')" data-col="cedula">Cédula</th>
+        <th onclick="sortBy('fecha')" data-col="fecha">Fecha</th>
+        <th onclick="sortBy('puntaje')" data-col="puntaje">Puntaje</th>
+        <th>%</th><th>Estado</th>
+        <th onclick="sortBy('intento')" data-col="intento">Intento</th>
+        <th onclick="sortBy('duracion_seg')" data-col="duracion_seg">Tiempo</th>
+        <th>Detalle</th>
+      </tr></thead>
+      <tbody id="tbl-body"><tr><td colspan="10"><div class="empty-st"><div class="loading-ring"></div><br>Cargando…</div></td></tr></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <button class="pg-btn" id="btn-prev" onclick="changePage(-1)">‹</button>
+    <span class="pg-info" id="pg-info">—</span>
+    <button class="pg-btn" id="btn-next" onclick="changePage(1)">›</button>
+  </div>
+</section>
+
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+const FIREBASE_CONFIG={apiKey:"AIzaSyBGVUbqNeNBth3d2QEOqsvA1dEW2ovKeg0",authDomain:"quiz-unidad5-c86d8.firebaseapp.com",projectId:"quiz-unidad5-c86d8",storageBucket:"quiz-unidad5-c86d8.firebasestorage.app",messagingSenderId:"226974496351",appId:"1:226974496351:web:a93c597cf3d398a1d24dea"};
+
+let db=null;
+try{firebase.initializeApp(FIREBASE_CONFIG);db=firebase.firestore();}catch(e){}
+
+let quizId="",quizData=null;
+let allData=[],filtered=[],sortCol="fecha",sortDir="desc",filterMode="all",page=1,PAGE=20;
+let maxInt=3,durMin=0,fbMode="inmediata";
+
+const SCREENS=["loading","error-screen","login","panel"];
+function show(id){SCREENS.forEach(s=>{const el=document.getElementById(s);if(!el)return;const flex=["loading","error-screen","login"].includes(s);el.style.display=s===id?(flex?"flex":"block"):"none";});}
+
+window.addEventListener("DOMContentLoaded",async()=>{
+  show("loading");
+  quizId=new URLSearchParams(location.search).get("id")||"";
+  if(!quizId){showErr("Falta el parámetro ?id= en la URL.");return;}
+  if(!db){showErr("Firebase no disponible.");return;}
+  try{
+    const snap=await db.collection("quizzes").doc(quizId).get();
+    if(!snap.exists){showErr(`Quiz "${quizId}" no encontrado.`);return;}
+    quizData=snap.data();
+    buildLoginUI();
+    const sk="panel_auth_"+quizId;
+    if(sessionStorage.getItem(sk)==="1"){enterPanel();}else{show("login");}
+  }catch(e){showErr("Error: "+e.message);}
+});
+
+function showErr(msg){document.getElementById("err-msg").textContent=msg;show("error-screen");}
+
+function buildLoginUI(){
+  const sigla=quizData.sigla||"";const mesa=quizData.mesa||"";const mat=quizData.materia||"";
+  document.title=`Panel · ${sigla||mat} · ${mesa}`;
+  document.getElementById("login-eyebrow").textContent=`${sigla||mat} · Panel Docente · ${mesa}`;
+  document.getElementById("login-desc").innerHTML=`${mat}<br>${sigla} · ${mesa} · ${quizData.facultad||"FIRNT"}<br>Docente: ${quizData.docente||"—"}`;
+  document.getElementById("panel-eyebrow").textContent=`${sigla||mat} · Panel Docente · ${mesa}`;
+  document.getElementById("panel-sub").innerHTML=`${mat} · ${quizData.facultad||"FIRNT"}<br>${mesa} · ${quizData.docente||"—"}`;
+  document.getElementById("st-apr-lbl").textContent=`Aprobados ≥${quizData.pass_score||"—"}`;
+}
+
+function doLogin(){
+  const val=document.getElementById("inp-pass").value;
+  if(val===(quizData.quiz_password||"docente2026")){
+    document.getElementById("login-err").classList.remove("show");
+    sessionStorage.setItem("panel_auth_"+quizId,"1");
+    enterPanel();
+  }else{document.getElementById("login-err").classList.add("show");}
+}
+function logout(){
+  sessionStorage.removeItem("panel_auth_"+quizId);
+  show("login");document.getElementById("inp-pass").value="";
+}
+function enterPanel(){show("panel");loadConfig();loadData();}
+
+// ── CONFIG ───────────────────────────────────────────────────────────
+function dtLocal(d){const p=n=>n.toString().padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;}
+
+async function loadConfig(){
+  if(!db||!quizData)return;
+  maxInt=quizData.max_intentos??3;durMin=quizData.duracion_min??0;fbMode=quizData.mostrar_feedback||"inmediata";
+  document.getElementById("cfg-max").textContent=maxInt;
+  document.getElementById("cfg-dur").textContent=durMin;
+  if(quizData.fecha_apertura?.toDate)document.getElementById("cfg-ap").value=dtLocal(quizData.fecha_apertura.toDate());
+  if(quizData.fecha_cierre?.toDate)document.getElementById("cfg-ci").value=dtLocal(quizData.fecha_cierre.toDate());
+  updFbBtns();updStatusBadge();
+}
+function updStatusBadge(){
+  const badge=document.getElementById("cfg-status");
+  const av=document.getElementById("cfg-ap").value,cv=document.getElementById("cfg-ci").value;
+  if(!av&&!cv){badge.textContent="Siempre abierto";badge.className="status-badge unlimited";return;}
+  const now=new Date(),ap=av?new Date(av):null,ci=cv?new Date(cv):null;
+  if(ap&&now<ap){badge.textContent="Programado";badge.className="status-badge scheduled";}
+  else if(ci&&now>ci){badge.textContent="Cerrado";badge.className="status-badge closed";}
+  else{badge.textContent="Abierto";badge.className="status-badge open";}
+}
+async function saveCfgField(fields){
+  const s=document.getElementById("cfg-save-st");s.textContent="Guardando…";
+  try{await db.collection("quizzes").doc(quizId).set(fields,{merge:true});quizData={...quizData,...fields};s.textContent="✔ Guardado";setTimeout(()=>s.textContent="",2200);}
+  catch(e){s.textContent="⚠ Error";}
+}
+async function updCfg(field,val){
+  val=Math.max(0,Math.min(field==="max_intentos"?10:180,val));
+  if(field==="max_intentos"){maxInt=val;document.getElementById("cfg-max").textContent=val;}
+  else{durMin=val;document.getElementById("cfg-dur").textContent=val;}
+  await saveCfgField({[field]:val});
+}
+async function updFb(val){fbMode=val;updFbBtns();await saveCfgField({mostrar_feedback:val});}
+function updFbBtns(){
+  ["inm","fin"].forEach(k=>{const b=document.getElementById("fb-"+k);if(b)b.classList.toggle("active",fbMode===(k==="inm"?"inmediata":"finalizar"));});
+  const h=document.getElementById("fb-hint");if(h)h.textContent=fbMode==="inmediata"?"El estudiante ve si acertó después de cada pregunta":"El estudiante solo ve resultados al finalizar";
+}
+async function updDate(field,val){
+  const ts=val?firebase.firestore.Timestamp.fromDate(new Date(val)):null;
+  await saveCfgField({[field]:ts});updStatusBadge();
+}
+async function clearDates(){
+  document.getElementById("cfg-ap").value="";document.getElementById("cfg-ci").value="";
+  await saveCfgField({fecha_apertura:null,fecha_cierre:null});updStatusBadge();
+}
+
+// ── DATA ─────────────────────────────────────────────────────────────
+async function loadData(){
+  document.getElementById("tbl-body").innerHTML='<tr><td colspan="10"><div class="empty-st"><div class="loading-ring"></div><br>Cargando…</div></td></tr>';
+  if(!db){document.getElementById("tbl-body").innerHTML='<tr><td colspan="10"><div class="empty-st">⚠ Firebase no disponible.</div></td></tr>';return;}
+  try{
+    const snap=await db.collection("results").doc(quizId).collection("submissions").orderBy("fecha","desc").get();
+    allData=snap.docs.map((doc,i)=>{
+      const d=doc.data();
+      return{id:doc.id,idx:i+1,nombre:d.nombre||"",cedula:d.cedula||"—",
+        puntaje:d.puntaje??0,porcentaje:d.porcentaje??0,aprobado:d.aprobado??false,
+        intento:d.intento??null,duracion_seg:d.duracion_seg??0,respuestas:d.respuestas||[],
+        fecha:d.fecha?.toDate?d.fecha.toDate():new Date(d.fecha||0)};
+    });
+    updStats();applyFilters();
+  }catch(e){document.getElementById("tbl-body").innerHTML=`<tr><td colspan="10"><div class="empty-st">Error: ${e.message}</div></td></tr>`;}
+}
+function updStats(){
+  const n=allData.length,sum=allData.reduce((s,r)=>s+r.puntaje,0);
+  const apr=allData.filter(r=>r.aprobado).length;
+  const mx=n?Math.max(...allData.map(r=>r.puntaje)):0;
+  document.getElementById("st-total").textContent=n;
+  document.getElementById("st-prom").textContent=n?(sum/n).toFixed(1):"—";
+  document.getElementById("st-apr").textContent=apr;
+  document.getElementById("st-rep").textContent=n-apr;
+  document.getElementById("st-max").textContent=n?`${mx}/${quizData.total||"—"}`:"—";
+}
+function setFilter(mode){
+  filterMode=mode;["all","apr","rep"].forEach(k=>document.getElementById("f-"+k).classList.remove("active"));
+  document.getElementById("f-"+mode).classList.add("active");page=1;applyFilters();
+}
+function applyFilters(){
+  const q=document.getElementById("search-inp").value.toLowerCase();
+  filtered=allData.filter(r=>{
+    const ms=!q||r.nombre.toLowerCase().includes(q)||r.cedula.toLowerCase().includes(q);
+    const mf=filterMode==="all"||(filterMode==="apr"&&r.aprobado)||(filterMode==="rep"&&!r.aprobado);
+    return ms&&mf;
+  });
+  sortData();
+}
+function sortBy(col){
+  if(sortCol===col)sortDir=sortDir==="asc"?"desc":"asc";else{sortCol=col;sortDir=col==="nombre"?"asc":"desc";}
+  document.querySelectorAll("thead th").forEach(th=>{th.classList.remove("asc","desc");if(th.dataset.col===col)th.classList.add(sortDir);});
+  page=1;sortData();
+}
+function sortData(){
+  filtered.sort((a,b)=>{let va=a[sortCol],vb=b[sortCol];if(va instanceof Date)va=va.getTime();if(vb instanceof Date)vb=vb.getTime();if(typeof va==="string")return sortDir==="asc"?va.localeCompare(vb):vb.localeCompare(va);return sortDir==="asc"?va-vb:vb-va;});
+  renderTbl();
+}
+function renderTbl(){
+  const tot=filtered.length,pages=Math.max(1,Math.ceil(tot/PAGE));
+  if(page>pages)page=pages;
+  document.getElementById("pg-info").textContent=`${page} / ${pages}`;
+  document.getElementById("btn-prev").disabled=page<=1;
+  document.getElementById("btn-next").disabled=page>=pages;
+  const sl=filtered.slice((page-1)*PAGE,page*PAGE);
+  if(!sl.length){document.getElementById("tbl-body").innerHTML='<tr><td colspan="10"><div class="empty-st">No hay resultados.</div></td></tr>';return;}
+  const total=quizData.total||0;
+  document.getElementById("tbl-body").innerHTML=sl.map((r,i)=>{
+    const g=(page-1)*PAGE+i+1;
+    const pill=r.puntaje===total?"pill-p":r.puntaje>=total*.8?"pill-g":r.aprobado?"pill-r":"pill-l";
+    const fStr=r.fecha instanceof Date&&r.fecha.getTime()>0?r.fecha.toLocaleDateString("es",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+r.fecha.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"}):"—";
+    const dStr=r.duracion_seg>0?Math.floor(r.duracion_seg/60)+"m "+(r.duracion_seg%60)+"s":"—";
+    return `<tr>
+      <td class="td-mono">${g}</td>
+      <td class="td-name">${esc(r.nombre)}</td>
+      <td class="td-mono">${esc(r.cedula)}</td>
+      <td class="td-date">${fStr}</td>
+      <td><span class="score-pill ${pill}">${r.puntaje}/${total}</span></td>
+      <td class="td-mono">${r.porcentaje}%</td>
+      <td>${r.aprobado?'<span class="badge-apr">Aprobado</span>':'<span class="badge-rep">Reprobado</span>'}</td>
+      <td class="td-mono">${r.intento?(maxInt>0?r.intento+"/"+maxInt:r.intento):"—"}</td>
+      <td class="td-mono">${dStr}</td>
+      <td><button class="det-btn" onclick="openDet('${r.id}')">Ver</button></td>
+    </tr>`;
+  }).join("");
+}
+function changePage(d){page+=d;renderTbl();window.scrollTo(0,0);}
+
+function openDet(id){
+  const r=allData.find(x=>x.id===id);if(!r)return;
+  const fStr=r.fecha instanceof Date&&r.fecha.getTime()>0?r.fecha.toLocaleString("es"):"—";
+  const dStr=r.duracion_seg>0?Math.floor(r.duracion_seg/60)+"m "+(r.duracion_seg%60)+"s":"—";
+  const qs=quizData.questions||[];
+  const temas=quizData.temas||[];
+  const respHtml=r.respuestas.length?r.respuestas.map((resp,i)=>{
+    const qitem=qs[i]||{};const temaName=temas[qitem.ti||0]?.nombre||(resp.tema||"");
+    return `<div class="resp-row">
+      <span class="resp-icon">${resp.correcto?"✅":"❌"}</span>
+      <span class="resp-num">${i+1}</span>
+      <span>
+        <div class="resp-tema">${esc(temaName)}</div>
+        <strong>${esc(qitem.q||("Pregunta "+(i+1)))}</strong><br>
+        <span style="color:#666;font-size:13px">
+          Respondió: <strong>${resp.elegida}</strong>
+          ${!resp.correcto?" · Correcta: <strong>"+resp.correcta+"</strong>":""}
+        </span>
+      </span>
+    </div>`;}).join(""):'<p style="color:#888;font-size:14px">Sin detalle.</p>';
+  const iStr=r.intento?`Intento ${r.intento}${maxInt>0?"/"+maxInt:""} · `:"";
+  const sn=esc(r.nombre).replace(/'/g,"\\'"),sc=esc(r.cedula).replace(/'/g,"\\'");
+  document.getElementById("modal-content").innerHTML=`
+    <div class="eyebrow" style="margin-bottom:8px">Detalle · ${esc(quizData.titulo||quizId)}</div>
+    <h3>${esc(r.nombre)}</h3>
+    <div class="modal-meta">
+      ${r.cedula!=="—"?"CI: "+esc(r.cedula)+" · ":""}${iStr}${fStr}<br>
+      Tiempo: ${dStr} · Puntaje: ${r.puntaje}/${quizData.total||"—"} (${r.porcentaje}%)
+    </div>
+    <div>${respHtml}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px">
+      <button class="modal-close" onclick="closeModal()">Cerrar</button>
+      <button class="reset-btn" onclick="resetIntentos('${sn}','${sc}')">↺ Resetear intentos</button>
+    </div>`;
+  document.getElementById("modal-bg").classList.add("open");
+}
+function closeModal(e){if(!e||e.target===document.getElementById("modal-bg"))document.getElementById("modal-bg").classList.remove("open");}
+
+async function resetIntentos(nombre,cedula){
+  if(!confirm(`¿Eliminar todos los intentos de "${nombre}"?\nNo se puede deshacer.`))return;
+  try{
+    const snap=await db.collection("results").doc(quizId).collection("submissions").where("cedula","==",cedula).get();
+    if(snap.empty){alert("No se encontraron intentos.");return;}
+    const batch=db.batch();snap.docs.forEach(d=>batch.delete(d.ref));await batch.commit();
+    document.getElementById("modal-bg").classList.remove("open");
+    alert(`Se eliminaron ${snap.docs.length} intento(s) de "${nombre}".`);
+    loadData();
+  }catch(e){alert("Error: "+e.message);}
+}
+
+function exportCSV(){
+  const rows=[["Nombre","Cédula","Intento","Fecha","Puntaje","Porcentaje","Estado","Tiempo (seg)"]];
+  filtered.forEach(r=>rows.push([`"${r.nombre}"`,`"${r.cedula}"`,r.intento??"",r.fecha instanceof Date?r.fecha.toISOString():"",r.puntaje,r.porcentaje+"%",r.aprobado?"Aprobado":"Reprobado",r.duracion_seg]));
+  const csv=rows.map(r=>r.join(",")).join("\n");
+  const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=`resultados_${quizId}.csv`;a.click();URL.revokeObjectURL(url);
+}
+
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+</script>
+</body>
+</html>
